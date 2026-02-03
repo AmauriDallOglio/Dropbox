@@ -25,6 +25,8 @@ Essas permissões são necessárias para permitir a leitura, gravação e consul
 
 Por fim, é necessário gerar o Access Token que será utilizado pela aplicação para autenticação. Acesse a aba Settings do aplicativo e clique na opção Generate access token. Após a geração, copie o token e armazene-o em local seguro.
 
+<img width="1868" height="566" alt="image" src="https://github.com/user-attachments/assets/113a33fa-1813-46b9-84cc-d175eb359428" />
+
 Atenção: o access token gerado concede acesso direto à conta do Dropbox associada ao aplicativo. Por esse motivo, ele deve ser tratado como informação sensível, evitando compartilhamento indevido ou exposição em código-fonte público.
 
 
