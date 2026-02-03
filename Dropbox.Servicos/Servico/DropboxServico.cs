@@ -1,8 +1,10 @@
 ﻿using Dropbox.Api;
 using Dropbox.Api.Files;
+using Dropbox.Api.Sharing;
 using Dropbox.Aplicacao.EntidadeDto;
 using Dropbox.Servicos.ServicoInterface;
 using Microsoft.Extensions.Options;
+using System.Text.RegularExpressions;
 
 namespace Dropbox.Servicos.Servico
 {
@@ -15,7 +17,7 @@ namespace Dropbox.Servicos.Servico
             _AppSettingsDto = appSettingsDto.Value;
         }
 
-        private DropboxClient DropboxCliente()
+        private DropboxClient ObterDropboxCliente()
         {
             if (!File.Exists(_AppSettingsDto.Token))
                 throw new FileNotFoundException("Arquivo de token do Dropbox não encontrado.");
@@ -31,7 +33,7 @@ namespace Dropbox.Servicos.Servico
 
         public async Task<object> ObterInformacaoContaAsync(CancellationToken cancellationToken)
         {
-            using var cliente = DropboxCliente();
+            using var cliente = ObterDropboxCliente();
             var conta = await cliente.Users.GetCurrentAccountAsync();
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -55,7 +57,7 @@ namespace Dropbox.Servicos.Servico
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            using var cliente = DropboxCliente();
+            using var cliente = ObterDropboxCliente();
 
             var caminho = $"{_AppSettingsDto.PastaBase}/{subFolder}/{request.File.FileName}";
 
@@ -67,21 +69,98 @@ namespace Dropbox.Servicos.Servico
                 body: stream);
         }
 
+ 
+
         public async Task<IEnumerable<object>> ObterArquivos(string subFolder, CancellationToken cancellationToken)
         {
-            using var cliente = DropboxCliente();
-
+            DropboxClient cliente = ObterDropboxCliente();
             cancellationToken.ThrowIfCancellationRequested();
 
-            var caminho = $"{_AppSettingsDto.PastaBase}/{subFolder}";
+            string caminho = $"{_AppSettingsDto.PastaBase}/{subFolder}";
+            ListFolderResult? resultadoDropbox = await cliente.Files.ListFolderAsync(caminho);
 
-            var resultado = await cliente.Files.ListFolderAsync(caminho);
+            var resultado = new List<object>();
 
-            return resultado.Entries.Select(e => new
+            foreach (var e in resultadoDropbox.Entries)
             {
-                e.Name,
-                Tipo = e.GetType().Name
-            });
+                string linkCompartilhadoPreview = string.Empty;
+                string linkCompartilhadoDownload = string.Empty;
+
+                if (e.IsFile)
+                {
+                    ListSharedLinksResult resultadoLink = await cliente.Sharing.ListSharedLinksAsync(e.PathDisplay, directOnly: true);
+                    SharedLinkMetadata? link = resultadoLink.Links.FirstOrDefault();
+                    if (link != null)
+                    {
+                        linkCompartilhadoPreview = AjustarLinkDownload(link.Url, DropboxLinkModo.Preview);
+                        linkCompartilhadoDownload = AjustarLinkDownload(link.Url, DropboxLinkModo.Download);
+                    }
+                }
+
+                resultado.Add(new
+                {
+                    e.Name,
+                    e.PathDisplay,
+                    e.PathLower,
+                    Tipo = e.GetType().Name,
+                    Tamanho = (e as Dropbox.Api.Files.FileMetadata)?.Size,
+                    DataModificacao = (e as Dropbox.Api.Files.FileMetadata)?.ClientModified,
+                    Rev = (e as Dropbox.Api.Files.FileMetadata)?.Rev,
+                    LinkCompartilhadoPreview = linkCompartilhadoPreview,
+                    LinkCompartilhadoDownload = linkCompartilhadoDownload
+                });
+            }
+
+            return resultado;
         }
+
+ 
+        public static string AjustarLinkDownload(string url, DropboxLinkModo modo)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return string.Empty;
+
+            // Remove parâmetros conflitantes
+            url = Regex.Replace(url, @"([&?])(dl|raw)=\d", string.Empty);
+
+            // Define o parâmetro conforme o modo escolhido
+            string parametro = string.Empty;
+            switch (modo)
+            {
+                case DropboxLinkModo.Download:
+                    parametro = "dl=1";
+                    break;
+
+                case DropboxLinkModo.Streaming:
+                    parametro = "raw=1";
+                    break;
+
+                case DropboxLinkModo.Preview:
+                    parametro = "dl=0";
+                    break;
+
+                default:
+                    break;
+            }
+
+
+            // Se for automático, retorna o link limpo
+            if (parametro == null)
+                return url;
+
+            // Adiciona o parâmetro corretamente
+            return url.Contains("?") ? $"{url}&{parametro}" : $"{url}?{parametro}";
+        }
+
+
+        public enum DropboxLinkModo
+        {
+            Automatico = 0,   // Não altera, só garante que seja válido
+            Download = 1,     // Força download (dl=1)
+            Streaming = 2,    // Conteúdo bruto (raw=1)
+            Preview = 3      // Força visualização (dl=0)
+        }
+
+
     }
 }
