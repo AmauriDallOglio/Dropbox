@@ -13,7 +13,7 @@ Na página inicial, selecione a opção Create app para iniciar o processo de cr
 
 Com o aplicativo criado, prossiga para a etapa de configuração de permissões. No menu Permissions, habilite os seguintes scopes:
 
-<img width="1078" height="537" alt="image" src="https://github.com/user-attachments/assets/199630f8-cabd-414d-9eb4-1bda5e63c0a8" />
+<img width="1536" height="733" alt="image" src="https://github.com/user-attachments/assets/68cc305b-21d1-4c53-b7b1-70653ea94844" />
 
 - files.content.write
 - files.content.read
