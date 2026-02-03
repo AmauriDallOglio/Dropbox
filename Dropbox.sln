@@ -3,9 +3,48 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35828.75 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox.Console", "Dropbox.Console\Dropbox.Console.csproj", "{B4149D44-E47A-40E5-B623-E804927D6AB7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nucleo", "Nucleo", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		Documentacao.md = Documentacao.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox.Aplicacao", "Dropbox.Aplicacao\Dropbox.Aplicacao.csproj", "{2090284C-BEBA-4910-B995-3C12BD892DC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox.Servicos", "Dropbox.Servicos\Dropbox.Servicos.csproj", "{8489E7EB-3FD8-40BD-91E2-97247CDE8C36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox.WebApi", "Dropbox.WebApi\Dropbox.WebApi.csproj", "{C9C626B2-F2D5-4778-89ED-B6DA3D8975EE}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4149D44-E47A-40E5-B623-E804927D6AB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4149D44-E47A-40E5-B623-E804927D6AB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4149D44-E47A-40E5-B623-E804927D6AB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4149D44-E47A-40E5-B623-E804927D6AB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2090284C-BEBA-4910-B995-3C12BD892DC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2090284C-BEBA-4910-B995-3C12BD892DC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2090284C-BEBA-4910-B995-3C12BD892DC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2090284C-BEBA-4910-B995-3C12BD892DC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8489E7EB-3FD8-40BD-91E2-97247CDE8C36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8489E7EB-3FD8-40BD-91E2-97247CDE8C36}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8489E7EB-3FD8-40BD-91E2-97247CDE8C36}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8489E7EB-3FD8-40BD-91E2-97247CDE8C36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9C626B2-F2D5-4778-89ED-B6DA3D8975EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9C626B2-F2D5-4778-89ED-B6DA3D8975EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9C626B2-F2D5-4778-89ED-B6DA3D8975EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9C626B2-F2D5-4778-89ED-B6DA3D8975EE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2090284C-BEBA-4910-B995-3C12BD892DC4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{8489E7EB-3FD8-40BD-91E2-97247CDE8C36} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2CACC3B-67B6-422F-BEAF-4749EF8A3012}
