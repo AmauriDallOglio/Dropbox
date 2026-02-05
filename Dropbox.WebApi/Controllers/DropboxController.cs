@@ -1,6 +1,7 @@
 ﻿using Dropbox.Aplicacao.EntidadeDto;
 using Dropbox.Servicos.ServicoInterface;
 using Microsoft.AspNetCore.Mvc;
+using static Dropbox.Api.TeamLog.AdminAlertSeverityEnum;
 
 namespace Dropbox.WebApi.Controllers
 {
@@ -9,6 +10,7 @@ namespace Dropbox.WebApi.Controllers
     public class DropboxController : ControllerBase
     {
         private readonly IDropboxServico _IDropboxServico;
+        //https://www.dropbox.com/developers/apps
 
         public DropboxController(IDropboxServico dropboxServico)
         {
@@ -18,8 +20,14 @@ namespace Dropbox.WebApi.Controllers
         [HttpGet("DadosConta")]
         public async Task<IActionResult> DadosConta(CancellationToken cancellationToken)
         {
-            var info = await _IDropboxServico.ObterInformacaoContaAsync(cancellationToken);
-            return Ok(info);
+            InformacaoContaDto? info = await _IDropboxServico.ObterInformacaoContaAsync(cancellationToken);
+            ResultadoOperacao<InformacaoContaDto> resultado = new ResultadoOperacao<InformacaoContaDto>
+            {
+                Sucesso = true,
+                Mensagem = "Informações da conta obtidas com sucesso.",
+                Resultado = info
+            };
+            return Ok(resultado);
         }
 
 
@@ -27,21 +35,36 @@ namespace Dropbox.WebApi.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> EnviarArquivo([FromForm] UploadArquivoRequest request, CancellationToken cancellationToken)
         {
-            if (request == null)
-                return BadRequest("Arquivo não informado.");
+            if (request.File == null)
+            {
+                ResultadoOperacao<object> erro = await ResultadoOperacao<object>.ErroAsync(
+                    null,
+                    "Não foi possível enviar o arquivo.", 
+                    string.Empty, 
+                    500);
+
+                return BadRequest(erro);
+            }
 
             try
             {
-                await _IDropboxServico.EnviarArquivoAsync(request, "Arquivos", cancellationToken);
-                return Ok("Arquivo enviado com sucesso.");
+                ResultadoOperacao<object> sucesso = await ResultadoOperacao<object>.SucessoAsync(
+                    data: null,
+                    mensagem: "Arquivo enviado com sucesso.",
+                    detalhes: string.Empty,
+                    statusCode: StatusCodes.Status200OK);
+
+                return Ok(sucesso);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new
-                {
-                    Mensagem = "Erro ao enviar arquivo",
-                    Erro = ex.Message
-                });
+                ResultadoOperacao<object> erro = await ResultadoOperacao<object>.ErroAsync(
+                    null, 
+                    "Erro ao enviar arquivo.", 
+                    ex.Message, 
+                    500);
+
+                return BadRequest(erro);
             }
         }
 

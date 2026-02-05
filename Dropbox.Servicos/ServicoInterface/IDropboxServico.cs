@@ -7,6 +7,6 @@ namespace Dropbox.Servicos.ServicoInterface
     {
         Task EnviarArquivoAsync(UploadArquivoRequest request, string subFolder, CancellationToken cancellationToken);
         Task<IEnumerable<object>> ObterArquivos(string subFolder, CancellationToken cancellationToken);
-        Task<object> ObterInformacaoContaAsync(CancellationToken cancellationToken);
+        Task<InformacaoContaDto> ObterInformacaoContaAsync(CancellationToken cancellationToken);
     }
 }

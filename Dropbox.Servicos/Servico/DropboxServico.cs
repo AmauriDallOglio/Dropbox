@@ -31,14 +31,14 @@ namespace Dropbox.Servicos.Servico
             return new DropboxClient(token);
         }
 
-        public async Task<object> ObterInformacaoContaAsync(CancellationToken cancellationToken)
+        public async Task<InformacaoContaDto> ObterInformacaoContaAsync(CancellationToken cancellationToken)
         {
             using var cliente = ObterDropboxCliente();
             var conta = await cliente.Users.GetCurrentAccountAsync();
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            return new
+            return new InformacaoContaDto
             {
                 Nome = conta.Name.DisplayName,
                 Email = conta.Email,
