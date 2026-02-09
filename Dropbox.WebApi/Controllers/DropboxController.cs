@@ -1,7 +1,6 @@
 ﻿using Dropbox.Aplicacao.EntidadeDto;
 using Dropbox.Servicos.ServicoInterface;
 using Microsoft.AspNetCore.Mvc;
-using static Dropbox.Api.TeamLog.AdminAlertSeverityEnum;
 
 namespace Dropbox.WebApi.Controllers
 {
@@ -35,25 +34,19 @@ namespace Dropbox.WebApi.Controllers
         [Consumes("multipart/form-data")]
         public async Task<IActionResult> EnviarArquivo([FromForm] UploadArquivoRequest request, CancellationToken cancellationToken)
         {
-            if (request.File == null)
-            {
-                ResultadoOperacao<object> erro = await ResultadoOperacao<object>.ErroAsync(
-                    null,
-                    "Não foi possível enviar o arquivo.", 
-                    string.Empty, 
-                    500);
-
-                return BadRequest(erro);
-            }
-
             try
             {
-                ResultadoOperacao<object> sucesso = await ResultadoOperacao<object>.SucessoAsync(
-                    data: null,
-                    mensagem: "Arquivo enviado com sucesso.",
-                    detalhes: string.Empty,
-                    statusCode: StatusCodes.Status200OK);
+                if (request.File == null)
+                {
+                    ResultadoOperacao<object> erro = await ResultadoOperacao<object>.ErroAsync(null, "Não foi possível enviar o arquivo.", string.Empty, 500);
+                    return BadRequest(erro);
+                }
+                var resultado = await _IDropboxServico.EnviarArquivoAsync(request, "Arquivos", cancellationToken);
+                Console.WriteLine($"Arquivo enviado: {resultado.Name}");
+                Console.WriteLine($"Tamanho: {resultado.Size}");
+                Console.WriteLine($"Path: {resultado.PathDisplay}");
 
+                ResultadoOperacao<object> sucesso = await ResultadoOperacao<object>.SucessoAsync(resultado.PathDisplay, mensagem: "Arquivo enviado com sucesso.", detalhes: string.Empty, statusCode: StatusCodes.Status200OK);
                 return Ok(sucesso);
             }
             catch (Exception ex)

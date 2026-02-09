@@ -50,23 +50,17 @@ namespace Dropbox.Servicos.Servico
             };
         }
 
-        public async Task EnviarArquivoAsync(UploadArquivoRequest request, string subFolder, CancellationToken cancellationToken)
+        public async Task<FileMetadata> EnviarArquivoAsync(UploadArquivoRequest request, string subFolder, CancellationToken cancellationToken)
         {
             if (request == null || request.File.Length == 0)
                 throw new ArgumentException("Arquivo inválido.");
 
             cancellationToken.ThrowIfCancellationRequested();
-
             using var cliente = ObterDropboxCliente();
-
             var caminho = $"{_AppSettingsDto.PastaBase}/{subFolder}/{request.File.FileName}";
-
             await using var stream = request.File.OpenReadStream();
-
-            await cliente.Files.UploadAsync(
-                caminho,
-                WriteMode.Overwrite.Instance,
-                body: stream);
+            var resultado = await cliente.Files.UploadAsync( caminho,  WriteMode.Overwrite.Instance, body: stream);
+            return resultado;
         }
 
  
