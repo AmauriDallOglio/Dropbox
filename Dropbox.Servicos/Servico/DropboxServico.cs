@@ -1,6 +1,5 @@
 ﻿using Dropbox.Api;
 using Dropbox.Api.Files;
-using Dropbox.Api.Sharing;
 using Dropbox.Aplicacao.EntidadeDto;
 using Dropbox.Servicos.ServicoInterface;
 using Microsoft.Extensions.Options;
@@ -22,8 +21,7 @@ namespace Dropbox.Servicos.Servico
             if (!File.Exists(_AppSettingsDto.Token))
                 throw new FileNotFoundException("Arquivo de token do Dropbox não encontrado.");
 
-            var token = File.ReadAllText(_AppSettingsDto.Token)
-                .Replace("\\\\", "\\");
+            var token = File.ReadAllText(_AppSettingsDto.Token).Replace("\\\\", "\\");
 
             if (string.IsNullOrWhiteSpace(token))
                 throw new Exception("Token do Dropbox está vazio.");
@@ -73,23 +71,26 @@ namespace Dropbox.Servicos.Servico
             string caminho = $"{_AppSettingsDto.PastaBase}/{subFolder}";
             ListFolderResult? resultadoDropbox = await cliente.Files.ListFolderAsync(caminho);
 
-            var resultado = new List<object>();
+            List<object> resultado = new List<object>();
 
-            foreach (var e in resultadoDropbox.Entries)
+            foreach (Metadata e in resultadoDropbox.Entries)
             {
                 string linkCompartilhadoPreview = string.Empty;
                 string linkCompartilhadoDownload = string.Empty;
 
                 if (e.IsFile)
                 {
-                    ListSharedLinksResult resultadoLink = await cliente.Sharing.ListSharedLinksAsync(e.PathDisplay, directOnly: true);
-                    SharedLinkMetadata? link = resultadoLink.Links.FirstOrDefault();
-                    if (link != null)
+                    string? urlBase = await ObterOuCriarLinkCompartilhadoAsync( cliente, e.PathDisplay);
+
+                    if (!string.IsNullOrEmpty(urlBase))
                     {
-                        linkCompartilhadoPreview = AjustarLinkDownload(link.Url, DropboxLinkModo.Preview);
-                        linkCompartilhadoDownload = AjustarLinkDownload(link.Url, DropboxLinkModo.Download);
+                        linkCompartilhadoPreview = AjustarLinkDownload(urlBase, DropboxLinkModo.Preview);
+                        linkCompartilhadoDownload = AjustarLinkDownload(urlBase, DropboxLinkModo.Download);
                     }
                 }
+
+                var file = e as Dropbox.Api.Files.FileMetadata;
+
 
                 resultado.Add(new
                 {
@@ -97,9 +98,9 @@ namespace Dropbox.Servicos.Servico
                     e.PathDisplay,
                     e.PathLower,
                     Tipo = e.GetType().Name,
-                    Tamanho = (e as Dropbox.Api.Files.FileMetadata)?.Size,
-                    DataModificacao = (e as Dropbox.Api.Files.FileMetadata)?.ClientModified,
-                    Rev = (e as Dropbox.Api.Files.FileMetadata)?.Rev,
+                    Tamanho = file?.Size,
+                    DataModificacao = file?.ClientModified,
+                    Rev = file?.Rev,
                     LinkCompartilhadoPreview = linkCompartilhadoPreview,
                     LinkCompartilhadoDownload = linkCompartilhadoDownload
                 });
@@ -108,13 +109,26 @@ namespace Dropbox.Servicos.Servico
             return resultado;
         }
 
- 
+
+        private async Task<string?> ObterOuCriarLinkCompartilhadoAsync(DropboxClient cliente, string path)
+        {
+            var links = await cliente.Sharing.ListSharedLinksAsync( path,  directOnly: true);
+
+            var linkExistente = links.Links.FirstOrDefault();
+            if (linkExistente != null)
+                return linkExistente.Url;
+
+            var novoLink = await cliente.Sharing.CreateSharedLinkWithSettingsAsync(path);
+            return novoLink.Url;
+        }
+
         public static string AjustarLinkDownload(string url, DropboxLinkModo modo)
         {
             if (string.IsNullOrWhiteSpace(url))
                 return string.Empty;
 
             // Remove parâmetros conflitantes
+            //url = url.Trim().Trim('"');
             url = Regex.Replace(url, @"([&?])(dl|raw)=\d", string.Empty);
 
             // Define o parâmetro conforme o modo escolhido

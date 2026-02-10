@@ -1,6 +1,5 @@
 ﻿using Dropbox.Api.Files;
 using Dropbox.Aplicacao.EntidadeDto;
-using Microsoft.AspNetCore.Http;
 
 namespace Dropbox.Servicos.ServicoInterface
 {
