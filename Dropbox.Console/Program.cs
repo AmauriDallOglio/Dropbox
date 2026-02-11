@@ -146,27 +146,34 @@ async Task<TokenArquivoDto> LerOuCriarTokenAsync(TipoToken tipoToken)
             if (tokenArquivoDto != null && !tokenArquivoDto.IsAccessTokenExpired())
                 return tokenArquivoDto;
 
-            EscreverLinha("Token expirado, renovando...");
-            return await CriarNovaConfiguracaoRefreshTokenAsync(caminhoToken);
+          
+                EscreverLinha("Gerando arquivo...");
+                return await CriarNovaConfiguracaoOauthAsync(caminhoToken);
+                   
+            
         }
-        else
-        {
-            EscreverLinha("Gerando arquivo...");
-            return await CriarNovaConfiguracaoRefreshTokenAsync(caminhoToken);
-        }
+
     }
     else
     {
-        var token = File.ReadAllText(caminhoToken).Replace("\\\\", "\\");
-
-
-        tokenArquivoDto = new TokenArquivoDto
+        if (File.Exists(caminhoToken))
         {
-            AccessToken = token,
-            RefreshToken = "",
-            ExpiresAt = null
-        };
+            var token = File.ReadAllText(caminhoToken).Replace("\\\\", "\\");
 
+
+            tokenArquivoDto = new TokenArquivoDto
+            {
+                AccessToken = token,
+                RefreshToken = "",
+                ExpiresAt = null
+            };
+
+            if (tokenArquivoDto != null && !tokenArquivoDto.IsAccessTokenExpired())
+                return tokenArquivoDto;
+
+            EscreverLinha("Gerando arquivo...");
+            return await CriarNovaConfiguracaoRefreshTokenAsync(caminhoToken);
+        }
     }
     return tokenArquivoDto;
 }
