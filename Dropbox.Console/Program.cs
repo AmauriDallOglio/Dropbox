@@ -4,6 +4,7 @@ using Dropbox.Api.Users;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using static Dropbox.Api.Files.SearchMatchType;
 
 
 // ============================
@@ -145,14 +146,17 @@ async Task<TokenArquivoDto> LerOuCriarTokenAsync(TipoToken tipoToken)
 
             if (tokenArquivoDto != null && !tokenArquivoDto.IsAccessTokenExpired())
                 return tokenArquivoDto;
-
-          
-                EscreverLinha("Gerando arquivo...");
-                return await CriarNovaConfiguracaoOauthAsync(caminhoToken);
-                   
-            
+            else
+            {
+                EscreverLinha("Renovando Token...");
+                return await RefreskTokenOauthAsync(tokenArquivoDto, caminhoToken);
+            }
         }
-
+        else
+        {
+            EscreverLinha("Gerando arquivo...");
+            return await CriarArquivoOauthAsync(tokenArquivoDto, caminhoToken);
+        }
     }
     else
     {
@@ -215,14 +219,49 @@ async Task EnviarArquivoAsync(DropboxClient dropboxCliente, string pasta, string
     }
 }
 
-async Task<TokenArquivoDto> CriarNovaConfiguracaoOauthAsync(string tOKEN_PATH_OAUTH)
+async Task<TokenArquivoDto> RefreskTokenOauthAsync(TokenArquivoDto tokenArquivoDto, string tOKEN_PATH_OAUTH)
 {
     EscreverLinha("============================");
-    EscreverLinha("CriarNovaConfiguracaoOauthAsync");
+    EscreverLinha("RefreskTokenOauthAsync");
+    EscreverLinha("============================");
+
+    var request = new Dictionary<string, string>
+    {
+        ["grant_type"] = "refresh_token",
+        ["refresh_token"] = tokenArquivoDto.RefreshToken,
+        ["client_id"] = _appKey,
+        ["client_secret"] = _appSecret
+    };
+
+    using var client = new HttpClient();
+    var response = await client.PostAsync("https://api.dropboxapi.com/oauth2/token", new FormUrlEncodedContent(request));
+
+    response.EnsureSuccessStatusCode();
+
+    var json = await response.Content.ReadAsStringAsync();
+    TokenResponse token = JsonSerializer.Deserialize<TokenResponse>(json);
+
+    var novo = new TokenArquivoDto
+    {
+        AccessToken = token.AccessToken,
+        RefreshToken = tokenArquivoDto.RefreshToken,
+        ExpiresAt = DateTime.UtcNow.AddSeconds(token.ExpiresIn)
+    };
+
+    await File.WriteAllTextAsync(tOKEN_PATH_OAUTH,
+        JsonSerializer.Serialize(novo, new JsonSerializerOptions { WriteIndented = true }));
+
+    return novo;
+}
+
+async Task<TokenArquivoDto> CriarArquivoOauthAsync(TokenArquivoDto tokenArquivoDto, string tOKEN_PATH_OAUTH)
+{
+    EscreverLinha("============================");
+    EscreverLinha("CriarArquivoOauthAsync");
     EscreverLinha("============================");
 
     EscreverLinha("\nAbra a URL abaixo no navegador:");
-    EscreverLinha(GetAuthorizationUrl());
+    EscreverLinha(UrlGeracaoCodigo());
 
     EscreverLinha("\nCole o code:");
     var code = Console.ReadLine();
@@ -243,6 +282,28 @@ async Task<TokenArquivoDto> CriarNovaConfiguracaoOauthAsync(string tOKEN_PATH_OA
 
     return store;
 }
+
+//async Task<TokenResponse> ExchangeRefreshToken(string refreshToken)
+//{
+//    var request = new Dictionary<string, string>
+//    {
+//        ["grant_type"] = "refresh_token",
+//        ["refresh_token"] = refreshToken,
+//        ["client_id"] = _appKey,
+//        ["client_secret"] = _appSecret
+//    };
+
+//    using var client = new HttpClient();
+//    var response = await client.PostAsync("https://api.dropboxapi.com/oauth2/token", new FormUrlEncodedContent(request));
+ 
+
+//    response.EnsureSuccessStatusCode();
+
+//    var json = await response.Content.ReadAsStringAsync();
+//    return JsonSerializer.Deserialize<TokenResponse>(json);
+//}
+
+
 
 async Task<TokenArquivoDto> CriarNovaConfiguracaoRefreshTokenAsync(string tOKEN_PATH_OAUTH)
 {
@@ -269,7 +330,7 @@ async Task<TokenArquivoDto> CriarNovaConfiguracaoRefreshTokenAsync(string tOKEN_
 // OAUTH DO DROPBOX
 // ============================
 
-string GetAuthorizationUrl()
+string UrlGeracaoCodigo()
 {
     EscreverLinha("============================");
     EscreverLinha("GetAuthorizationUrl");
