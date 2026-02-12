@@ -1,10 +1,10 @@
 ﻿using Dropbox.Api;
 using Dropbox.Api.Files;
 using Dropbox.Api.Users;
+using Dropbox.Aplicacao.Util;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using static Dropbox.Api.Files.SearchMatchType;
 
 
 // ============================
@@ -15,50 +15,48 @@ string _appSecret = "5zhyyqxacdq11di";
 string _redirectUri = "http://localhost";
 string _pasta = "/AMAURI_NET/Arquivos";
 string _nomeArquivo = $"{DateTime.Now:ddMMyyyy_HHmmss}";
-
+ArquivoLog _arquivoLog = new ArquivoLog();   
 
 try
 {
-    EscreverLinha("********************************************************");
-    EscreverLinha("************************* Oath 2.0 *********************");
-    EscreverLinha("********************************************************");
-    EscreverLinha("Iniciando Dropbox...\n");
+    _arquivoLog.Info("********************************************************");
+    _arquivoLog.Info("************************* Oath 2.0 *********************");
+    _arquivoLog.Info("********************************************************");
+    _arquivoLog.Info("Iniciando Dropbox...\n");
+
+
 
     DropboxClient dropboxCliente = Inicializacao(TipoToken.OAuth).Result;
-
     await EnviarArquivoAsync(dropboxCliente, _pasta, $"{_nomeArquivo}_Oath.txt", "Arquivo enviado via Program.cs");
-
 }
 catch (Exception ex)
 {
-    EscreverLinha($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    EscreverLinha($" Erro: {ex.Message} / {ex.InnerException?.Message ?? ""}");
-    EscreverLinha($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
+    _arquivoLog.Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    _arquivoLog.Error($" Erro: {ex.Message} / {ex.InnerException?.Message ?? ""}");
+    _arquivoLog.Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
 }
 
 
 try
 {
-    EscreverLinha("\n********************************************************");
-    EscreverLinha("********************* Token ******************************");
-    EscreverLinha("**********************************************************");
-    EscreverLinha("Iniciando Dropbox...\n");
+    _arquivoLog.Info("\n********************************************************");
+    _arquivoLog.Info("********************* Token ******************************");
+    _arquivoLog.Info("**********************************************************");
+    _arquivoLog.Info("Iniciando Dropbox...\n");
 
-    DropboxClient dropboxCliente = Inicializacao(TipoToken.Token).Result;
-
+    DropboxClient dropboxCliente = Inicializacao(TipoToken.OAuth).Result;
     await EnviarArquivoAsync(dropboxCliente, _pasta, $"{_nomeArquivo}_Token.txt", "Arquivo enviado via Program.cs");
-
 }
 catch (Exception ex)
 {
-    EscreverLinha($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    EscreverLinha($" Erro: {ex.Message} / {ex.InnerException?.Message ?? ""}");
-    EscreverLinha($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
+    _arquivoLog.Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    _arquivoLog.Error($" Erro: {ex.Message} / {ex.InnerException?.Message ?? ""}");
+    _arquivoLog.Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
 }
 
-EscreverLinha("============================");
-EscreverLinha("FIM");
-EscreverLinha("============================");
+_arquivoLog.Info("============================");
+_arquivoLog.Info("FIM");
+_arquivoLog.Info("============================");
 
 
 // ============================
@@ -77,13 +75,13 @@ async Task<DropboxClient> Inicializacao(TipoToken tipoToken)
     string tokenArquivo = arquivo.AccessToken;
     DateTime? vencimento = arquivo.ExpiresAt;
 
-    EscreverLinha($"\n Vencimento: {vencimento}");
-    EscreverLinha($"\n Token: {tokenArquivo}");
+    _arquivoLog.Padrao($" Vencimento: {vencimento}");
+    _arquivoLog.Padrao($"\n Token: {tokenArquivo}");
     if (string.IsNullOrWhiteSpace(tokenArquivo))
     {
-        EscreverLinha("Token do Dropbox está vazio.");
+        _arquivoLog.Error("Token do Dropbox está vazio.");
     }
-    EscreverLinha("\n Conectando ao Dropbox...");
+    _arquivoLog.Padrao("\n Conectando ao Dropbox...");
 
 
     DropboxClient dropboxCliente = new DropboxClient(tokenArquivo);
@@ -93,23 +91,21 @@ async Task<DropboxClient> Inicializacao(TipoToken tipoToken)
         //throw new Exception("Conta do Dropbox está vazio.");
     }
 
-    EscreverLinha("============================");
-    EscreverLinha("Informações da conta Dropbox:");
-    EscreverLinha("============================");
-    EscreverLinha($" - Nome: {conta.Name.DisplayName}");
-    EscreverLinha($" - Email: {conta.Email}");
-    EscreverLinha($" - AccountId: {conta.AccountId}");
-    EscreverLinha($" - País: {conta.Country}");
-    EscreverLinha($" - Tipo Basico: {conta.AccountType.IsBasic}");
-    EscreverLinha($" - Tipo Comercial: {conta.AccountType.IsBusiness}");
-    EscreverLinha($" - Tipo Profissional: {conta.AccountType.IsPro}");
-    EscreverLinha("Informações técnicas do cliente:");
-    EscreverLinha($" - Classe: {conta.GetType().Name}");
-    EscreverLinha($" - Namespace: {conta.GetType().Namespace}");
+    _arquivoLog.Alerta("============================");
+    _arquivoLog.Alerta("Informações da conta Dropbox:");
+    _arquivoLog.Alerta("============================");
+    _arquivoLog.Padrao($" - Nome: {conta.Name.DisplayName}");
+    _arquivoLog.Padrao($" - Email: {conta.Email}");
+    _arquivoLog.Padrao($" - AccountId: {conta.AccountId}");
+    _arquivoLog.Padrao($" - País: {conta.Country}");
+    _arquivoLog.Padrao($" - Tipo Basico: {conta.AccountType.IsBasic}");
+    _arquivoLog.Padrao($" - Tipo Comercial: {conta.AccountType.IsBusiness}");
+    _arquivoLog.Padrao($" - Tipo Profissional: {conta.AccountType.IsPro}");
+    _arquivoLog.Padrao("Informações técnicas do cliente:");
+    _arquivoLog.Padrao($" - Classe: {conta.GetType().Name}");
+    _arquivoLog.Padrao($" - Namespace: {conta.GetType().Namespace}");
 
-    EscreverLinha("============================");
-    EscreverLinha("ENVIAR ARQUIVO ");
-    EscreverLinha("============================");
+
 
     return dropboxCliente;
 }
@@ -119,9 +115,9 @@ async Task<DropboxClient> Inicializacao(TipoToken tipoToken)
 async Task<TokenArquivoDto> LerOuCriarTokenAsync(TipoToken tipoToken)
 {
 
-    EscreverLinha("============================");
-    EscreverLinha("LerOuCriarTokenAsync");
-    EscreverLinha("============================");
+    _arquivoLog.Alerta("============================");
+    _arquivoLog.Alerta("LerOuCriarTokenAsync");
+    _arquivoLog.Alerta("============================");
 
     string caminhoToken = string.Empty;
     TokenArquivoDto tokenArquivoDto = new TokenArquivoDto();
@@ -148,13 +144,13 @@ async Task<TokenArquivoDto> LerOuCriarTokenAsync(TipoToken tipoToken)
                 return tokenArquivoDto;
             else
             {
-                EscreverLinha("Renovando Token...");
+                _arquivoLog.Padrao("Renovando Token...");
                 return await RefreskTokenOauthAsync(tokenArquivoDto, caminhoToken);
             }
         }
         else
         {
-            EscreverLinha("Gerando arquivo...");
+            _arquivoLog.Padrao("Gerando arquivo...");
             return await CriarArquivoOauthAsync(tokenArquivoDto, caminhoToken);
         }
     }
@@ -175,7 +171,7 @@ async Task<TokenArquivoDto> LerOuCriarTokenAsync(TipoToken tipoToken)
             if (tokenArquivoDto != null && !tokenArquivoDto.IsAccessTokenExpired())
                 return tokenArquivoDto;
 
-            EscreverLinha("Gerando arquivo...");
+            _arquivoLog.Padrao("Gerando arquivo...");
             return await CriarNovaConfiguracaoRefreshTokenAsync(caminhoToken);
         }
     }
@@ -185,35 +181,36 @@ async Task<TokenArquivoDto> LerOuCriarTokenAsync(TipoToken tipoToken)
 
 async Task EnviarArquivoAsync(DropboxClient dropboxCliente, string pasta, string nomeArquivo, string conteudo)
 {
-    EscreverLinha("============================");
-    EscreverLinha("EnviarArquivoAsync");
-    EscreverLinha("============================");
+    _arquivoLog.Alerta("============================");
+    _arquivoLog.Alerta("EnviarArquivoAsync");
+    _arquivoLog.Alerta("============================");
     string caminho = $"{pasta}/{nomeArquivo}";
+    _arquivoLog.Padrao($"Caminho: {caminho}");
     using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(conteudo));
     try
     {
-        EscreverLinha("============================");
-        EscreverLinha("ENVIAR ARQUIVO ");
-        EscreverLinha("============================");
+        _arquivoLog.Alerta("============================");
+        _arquivoLog.Alerta("ENVIAR ARQUIVO ");
+        _arquivoLog.Alerta("============================");
         await dropboxCliente.Files.UploadAsync(caminho, WriteMode.Overwrite.Instance, body: stream);
-        EscreverLinha($"Arquivo enviado: {nomeArquivo}");
+        _arquivoLog.Padrao($"Arquivo enviado: {nomeArquivo}");
 
 
-        EscreverLinha("============================");
-        EscreverLinha("LISTAR ARQUIVOS");
-        EscreverLinha("============================");
+        _arquivoLog.Alerta("============================");
+        _arquivoLog.Alerta("LISTAR ARQUIVOS");
+        _arquivoLog.Alerta("============================");
         var arquivos = await dropboxCliente.Files.ListFolderAsync(pasta);
-        Console.WriteLine($"\n Total de arquivos: {arquivos.Entries.Count}");
+        _arquivoLog.Padrao($"\n Total de arquivos: {arquivos.Entries.Count}");
         foreach (var item in arquivos.Entries)
         {
-            Console.WriteLine($"\n {item.Name} - {item.GetType().Name}");
+            _arquivoLog.Padrao($"\n {item.Name} - {item.GetType().Name}");
         }
     }
     catch (ApiException<UploadError> ex)
     {
-        EscreverLinha($"Erro Dropbox: {ex.ErrorResponse}");
+        _arquivoLog.Padrao($"Erro Dropbox: {ex.ErrorResponse}");
         if (ex.ErrorResponse.IsPath)
-            EscreverLinha($"Path error: {ex.ErrorResponse.AsPath}");
+            _arquivoLog.Padrao($"Path error: {ex.ErrorResponse.AsPath}");
 
         throw;
     }
@@ -221,9 +218,9 @@ async Task EnviarArquivoAsync(DropboxClient dropboxCliente, string pasta, string
 
 async Task<TokenArquivoDto> RefreskTokenOauthAsync(TokenArquivoDto tokenArquivoDto, string tOKEN_PATH_OAUTH)
 {
-    EscreverLinha("============================");
-    EscreverLinha("RefreskTokenOauthAsync");
-    EscreverLinha("============================");
+    _arquivoLog.Alerta("============================");
+    _arquivoLog.Alerta("RefreskTokenOauthAsync");
+    _arquivoLog.Alerta("============================");
 
     var request = new Dictionary<string, string>
     {
@@ -256,15 +253,17 @@ async Task<TokenArquivoDto> RefreskTokenOauthAsync(TokenArquivoDto tokenArquivoD
 
 async Task<TokenArquivoDto> CriarArquivoOauthAsync(TokenArquivoDto tokenArquivoDto, string tOKEN_PATH_OAUTH)
 {
-    EscreverLinha("============================");
-    EscreverLinha("CriarArquivoOauthAsync");
-    EscreverLinha("============================");
+    _arquivoLog.Alerta("============================");
+    _arquivoLog.Alerta("CriarArquivoOauthAsync");
+    _arquivoLog.Alerta("============================");
 
-    EscreverLinha("\nAbra a URL abaixo no navegador:");
-    EscreverLinha(UrlGeracaoCodigo());
+    _arquivoLog.Sucesso("\nAbra a URL abaixo no navegador:");
+    _arquivoLog.Sucesso(UrlGeracaoCodigo());
 
-    EscreverLinha("\nCole o code:");
+    _arquivoLog.Sucesso("\nCole o code:");
     var code = Console.ReadLine();
+    _arquivoLog.Sucesso($"Cole o code: {code}");
+
 
     if (string.IsNullOrWhiteSpace(code))
         throw new Exception("Code inválido");
@@ -307,9 +306,9 @@ async Task<TokenArquivoDto> CriarArquivoOauthAsync(TokenArquivoDto tokenArquivoD
 
 async Task<TokenArquivoDto> CriarNovaConfiguracaoRefreshTokenAsync(string tOKEN_PATH_OAUTH)
 {
-    EscreverLinha("============================");
-    EscreverLinha("CriarNovaConfiguracaoRefreshTokenAsync");
-    EscreverLinha("============================");
+    _arquivoLog.Alerta("============================");
+    _arquivoLog.Alerta("CriarNovaConfiguracaoRefreshTokenAsync");
+    _arquivoLog.Alerta("============================");
 
     TokenResponse token = await RefreshAccessToken(tOKEN_PATH_OAUTH);
 
@@ -332,9 +331,9 @@ async Task<TokenArquivoDto> CriarNovaConfiguracaoRefreshTokenAsync(string tOKEN_
 
 string UrlGeracaoCodigo()
 {
-    EscreverLinha("============================");
-    EscreverLinha("GetAuthorizationUrl");
-    EscreverLinha("============================");
+    _arquivoLog.Alerta("============================");
+    _arquivoLog.Alerta("GetAuthorizationUrl");
+    _arquivoLog.Alerta("============================");
 
     return "https://www.dropbox.com/oauth2/authorize" +
             $"?client_id={_appKey}" +
@@ -345,9 +344,9 @@ string UrlGeracaoCodigo()
 
 async Task<TokenResponse> ExchangeCodeForTokens(string code)
 {
-    EscreverLinha("============================");
-    EscreverLinha("ExchangeCodeForTokens");
-    EscreverLinha("============================");
+    _arquivoLog.Alerta("============================");
+    _arquivoLog.Alerta("ExchangeCodeForTokens");
+    _arquivoLog.Alerta("============================");
 
     using var client = new HttpClient();
     FormUrlEncodedContent content = new FormUrlEncodedContent(new[]
@@ -365,9 +364,9 @@ async Task<TokenResponse> ExchangeCodeForTokens(string code)
 
 async Task<TokenResponse> RefreshAccessToken(string refreshToken)
 {
-    EscreverLinha("============================");
-    EscreverLinha("RefreshAccessToken");
-    EscreverLinha("============================");
+    _arquivoLog.Alerta("============================");
+    _arquivoLog.Alerta("RefreshAccessToken");
+    _arquivoLog.Alerta("============================");
 
     using var client = new HttpClient();
     FormUrlEncodedContent content = new FormUrlEncodedContent(new[]
@@ -381,11 +380,7 @@ async Task<TokenResponse> RefreshAccessToken(string refreshToken)
     var json = await response.Content.ReadAsStringAsync();
     return JsonSerializer.Deserialize<TokenResponse>(json)!;
 }
-
-static void EscreverLinha(string msg)
-{
-    Console.WriteLine(msg);
-}
+ 
 
 
 // ============================
