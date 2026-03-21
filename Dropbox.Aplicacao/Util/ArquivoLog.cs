@@ -50,31 +50,26 @@
         }
 
 
-        public void Error(string menssagem)
+        public static void Error(string menssagem)
         {
             Padrao($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {menssagem}", ConsoleColor.White, ConsoleColor.Red);
         }
 
 
-        public void Sucesso(string menssagem)
+        public static void Sucesso(string menssagem)
         {
             Padrao($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {menssagem}", ConsoleColor.Black, ConsoleColor.Green);
         }
 
 
-        public void Alerta(string menssagem)
+        public static void Alerta(string menssagem)
         {
             Padrao($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {menssagem}", ConsoleColor.Black, ConsoleColor.Yellow);
         }
 
-        public void Info(string menssagem)
+        public static void Info(string menssagem)
         {
             Padrao($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {menssagem}", ConsoleColor.Yellow, ConsoleColor.Blue);
-        }
-
-        public void Padrao(string menssagem)
-        {
-            Padrao($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {menssagem}", ConsoleColor.White, ConsoleColor.Black);
         }
 
     }

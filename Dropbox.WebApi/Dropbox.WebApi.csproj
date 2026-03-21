@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Dropbox.Aplicacao\Dropbox.Aplicacao.csproj" />
+    <ProjectReference Include="..\Dropbox.Infraestrutura\Dropbox.Infraestrutura.csproj" />
     <ProjectReference Include="..\Dropbox.Servicos\Dropbox.Servicos.csproj" />
   </ItemGroup>
 

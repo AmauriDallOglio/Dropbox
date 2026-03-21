@@ -1,5 +1,6 @@
-
-using Dropbox.Aplicacao.EntidadeDto;
+using Dropbox.Aplicacao.Util;
+using Dropbox.Dominio.InterfaceRepositorio;
+using Dropbox.Infraestrutura.Repositorio;
 using Dropbox.Servicos.Dto;
 using Dropbox.Servicos.Servico;
 using Dropbox.Servicos.ServicoInterface;
@@ -12,12 +13,25 @@ namespace Dropbox.WebApi
     {
         public static void Main(string[] args)
         {
-            var builder = WebApplication.CreateBuilder(args);
+
+            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+
+            var ambiente = builder.Environment.IsDevelopment() ? "appsettings.Development.json" : "appsettings.json";
+            ArquivoLog.Alerta($"Configuração: {ambiente}");
+            IConfigurationRoot configuration = new ConfigurationBuilder()
+                .SetBasePath(builder.Environment.ContentRootPath)
+                .AddJsonFile(ambiente, optional: false, reloadOnChange: true)
+                .Build();
+
+
+
+
 
             builder.Services.Configure<AppSettingsDto>(builder.Configuration.GetSection("Dropbox"));
 
 
-
+            builder.Services.AddScoped<IDropboxConfiguracaoRepositorio, DropboxConfiguracaoRepositorio>();
             builder.Services.AddScoped<IDropboxServico, DropboxServico>();
 
             builder.Services.AddControllers();
