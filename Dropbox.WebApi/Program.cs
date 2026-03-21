@@ -1,5 +1,6 @@
 
 using Dropbox.Aplicacao.EntidadeDto;
+using Dropbox.Servicos.Dto;
 using Dropbox.Servicos.Servico;
 using Dropbox.Servicos.ServicoInterface;
 using Microsoft.AspNetCore.Http.Features;
@@ -14,6 +15,8 @@ namespace Dropbox.WebApi
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.Configure<AppSettingsDto>(builder.Configuration.GetSection("Dropbox"));
+
+
 
             builder.Services.AddScoped<IDropboxServico, DropboxServico>();
 
