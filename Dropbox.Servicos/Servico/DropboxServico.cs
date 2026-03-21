@@ -38,21 +38,22 @@ namespace Dropbox.Servicos.Servico
                     if (typeof(T) != typeof(DropboxTokenDto))
                         throw new InvalidOperationException("Tipo esperado: DropboxTokenDto");
 
-                    var aaaaa = (T)(object)LerJsonArquivo<DropboxTokenDto>(conteudo);
-                    return aaaaa;
+                    var oAuth = (T)(object)LerJsonArquivo<DropboxTokenDto>(conteudo);
+                    return oAuth;
 
                 case DropboxParametro.Token:
                     if (typeof(T) != typeof(DropboxTokenDto))
                         throw new InvalidOperationException("Tipo esperado: DropboxTokenDto");
 
-                    var aaaa = (T)(object)LerJsonArquivo<DropboxTokenDto>(conteudo);
-                    return aaaa;
+                    var token = (T)(object)LerJsonArquivo<DropboxTokenDto>(conteudo);
+                    return token;
 
                 case DropboxParametro.Configuracao:
                     if (typeof(T) != typeof(DropboxConfiguracaoDto))
                         throw new InvalidOperationException("Tipo esperado: DropboxConfiguracaoDto");
 
-                    return (T)(object)LerJsonArquivo<DropboxConfiguracaoDto>(conteudo);
+                    var config = (T)(object)LerJsonArquivo<DropboxConfiguracaoDto>(conteudo);
+                    return config;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(parametro), parametro, "Parâmetro inválido");

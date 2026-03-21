@@ -6,12 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Dropbox.Aplicacao\Dropbox.Aplicacao.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="NovaPasta\" />
-  </ItemGroup>
-
 </Project>

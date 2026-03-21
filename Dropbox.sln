@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35828.75 d17.13
+VisualStudioVersion = 17.13.35828.75
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox.Console", "Dropbox.Console\Dropbox.Console.csproj", "{B4149D44-E47A-40E5-B623-E804927D6AB7}"
 EndProject
@@ -15,6 +15,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox.Servicos", "Dropbox.Servicos\Dropbox.Servicos.csproj", "{8489E7EB-3FD8-40BD-91E2-97247CDE8C36}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox.WebApi", "Dropbox.WebApi\Dropbox.WebApi.csproj", "{C9C626B2-F2D5-4778-89ED-B6DA3D8975EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dropbox.Dominio", "Dropbox.Dominio\Dropbox.Dominio.csproj", "{FEDFD77F-5AF4-4D32-903F-30C8971B55DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,6 +40,10 @@ Global
 		{C9C626B2-F2D5-4778-89ED-B6DA3D8975EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9C626B2-F2D5-4778-89ED-B6DA3D8975EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9C626B2-F2D5-4778-89ED-B6DA3D8975EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEDFD77F-5AF4-4D32-903F-30C8971B55DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEDFD77F-5AF4-4D32-903F-30C8971B55DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEDFD77F-5AF4-4D32-903F-30C8971B55DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEDFD77F-5AF4-4D32-903F-30C8971B55DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -45,6 +51,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{2090284C-BEBA-4910-B995-3C12BD892DC4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{8489E7EB-3FD8-40BD-91E2-97247CDE8C36} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{FEDFD77F-5AF4-4D32-903F-30C8971B55DD} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B2CACC3B-67B6-422F-BEAF-4749EF8A3012}
