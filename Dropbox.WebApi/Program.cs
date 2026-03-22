@@ -1,11 +1,6 @@
 using Dropbox.Aplicacao.Util;
-using Dropbox.Dominio.InterfaceRepositorio;
-using Dropbox.Infraestrutura.Repositorio;
-using Dropbox.Servicos.Dto;
-using Dropbox.Servicos.Servico;
-using Dropbox.Servicos.ServicoInterface;
-using Microsoft.AspNetCore.Http.Features;
-using Microsoft.OpenApi.Models;
+using Dropbox.WebApi.Configuracao;
+using Dropbox.WebApi.Middleware;
 
 namespace Dropbox.WebApi
 {
@@ -18,7 +13,7 @@ namespace Dropbox.WebApi
 
 
             var ambiente = builder.Environment.IsDevelopment() ? "appsettings.Development.json" : "appsettings.json";
-            ArquivoLog.Alerta($"Configuração: {ambiente}");
+            ArquivoLog.Info($"Configuração: {ambiente}");
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(builder.Environment.ContentRootPath)
                 .AddJsonFile(ambiente, optional: false, reloadOnChange: true)
@@ -26,32 +21,11 @@ namespace Dropbox.WebApi
 
 
 
+            AppSettingsConfiguracao.Carregar(builder.Services, configuration);
+            InjecaoDependenciaConfiguracao.Carregar(builder.Services);
+            ApiConfiguracao.Carregar(builder.Services);
 
 
-            builder.Services.Configure<AppSettingsDto>(builder.Configuration.GetSection("Dropbox"));
-
-
-            builder.Services.AddScoped<IDropboxConfiguracaoRepositorio, DropboxConfiguracaoRepositorio>();
-            builder.Services.AddScoped<IDropboxServico, DropboxServico>();
-
-            builder.Services.AddControllers();
-
-            builder.Services.Configure<FormOptions>(options =>
-            {
-                options.MultipartBodyLengthLimit = 100_000_000;
-            });
-
-            builder.Services.AddEndpointsApiExplorer();
-
-            builder.Services.AddSwaggerGen(c =>
-            {
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "Dropbox Upload API",
-                    Version = "v1",
-                    Description = "API para upload e listagem de arquivos no Dropbox"
-                });
-            });
 
             var app = builder.Build();
 
@@ -63,6 +37,10 @@ namespace Dropbox.WebApi
 
             app.UseHttpsRedirection();
             app.MapControllers();
+
+            app.UseMiddleware<ErrorMiddleware>();
+
+
 
             app.Run();
         }

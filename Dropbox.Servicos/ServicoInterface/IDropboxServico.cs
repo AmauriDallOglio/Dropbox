@@ -1,5 +1,5 @@
 ﻿using Dropbox.Api.Files;
-using Dropbox.Aplicacao.EntidadeDto;
+using Dropbox.Servicos.Dto;
 
 namespace Dropbox.Servicos.ServicoInterface
 {

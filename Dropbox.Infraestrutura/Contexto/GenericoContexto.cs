@@ -1,6 +1,7 @@
 ﻿using Dropbox.Dominio.Entidade;
 using Dropbox.Infraestrutura.Mapeamento;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer;
 
 namespace Dropbox.Infraestrutura.Contexto
 {

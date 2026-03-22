@@ -18,8 +18,7 @@ namespace Dropbox.Infraestrutura.Mapeamento
             builder.Property(x => x.RedirectUri).HasMaxLength(500);
             builder.Property(x => x.Pasta).HasMaxLength(500);
             builder.Property(x => x.NomeArquivo).HasMaxLength(200);
-            builder.Property(x => x.Tipo).IsRequired();
-            builder.HasIndex(x => x.Tipo).IsUnique();
+
         }
     }
 }

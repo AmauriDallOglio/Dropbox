@@ -1,11 +1,12 @@
 ﻿using Dropbox.Api;
 using Dropbox.Api.Files;
-using Dropbox.Aplicacao.EntidadeDto;
+using Dropbox.Dominio.Entidade;
+using Dropbox.Dominio.InterfaceRepositorio;
 using Dropbox.Servicos.Dto;
 using Dropbox.Servicos.ServicoInterface;
 using Microsoft.Extensions.Options;
-using System.Text.RegularExpressions;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 
 namespace Dropbox.Servicos.Servico
@@ -14,9 +15,12 @@ namespace Dropbox.Servicos.Servico
     {
         private readonly AppSettingsDto _AppSettingsDto;
 
-        public DropboxServico(IOptions<AppSettingsDto> appSettingsDto)
+        private readonly IDropboxConfiguracaoRepositorio _repositorio;
+
+        public DropboxServico(IOptions<AppSettingsDto> appSettingsDto, IDropboxConfiguracaoRepositorio repositorio)
         {
             _AppSettingsDto = appSettingsDto.Value;
+            _repositorio = repositorio;
         }
 
 
@@ -36,21 +40,21 @@ namespace Dropbox.Servicos.Servico
             {
                 case DropboxParametro.OAuth:
                     if (typeof(T) != typeof(DropboxTokenDto))
-                        throw new InvalidOperationException("Tipo esperado: DropboxTokenDto");
+                        throw new InvalidOperationException("Arquivo OAuth, erro na conversão");
 
                     var oAuth = (T)(object)LerJsonArquivo<DropboxTokenDto>(conteudo);
                     return oAuth;
 
                 case DropboxParametro.Token:
                     if (typeof(T) != typeof(DropboxTokenDto))
-                        throw new InvalidOperationException("Tipo esperado: DropboxTokenDto");
+                        throw new InvalidOperationException("Arquivo Token, erro na conversão");
 
                     var token = (T)(object)LerJsonArquivo<DropboxTokenDto>(conteudo);
                     return token;
 
                 case DropboxParametro.Configuracao:
                     if (typeof(T) != typeof(DropboxConfiguracaoDto))
-                        throw new InvalidOperationException("Tipo esperado: DropboxConfiguracaoDto");
+                        throw new InvalidOperationException("Arquivo Configuracao, erro na conversão");
 
                     var config = (T)(object)LerJsonArquivo<DropboxConfiguracaoDto>(conteudo);
                     return config;
@@ -88,13 +92,13 @@ namespace Dropbox.Servicos.Servico
             switch (parametro)
             {
                 case DropboxParametro.OAuth:
-                    return _AppSettingsDto.OAuth ?? throw new FileNotFoundException("OAuth não configurado");
+                    return _AppSettingsDto.ArquivoConfiguracao.OAuth ?? throw new FileNotFoundException("OAuth não configurado");
 
                 case DropboxParametro.Token:
-                    return _AppSettingsDto.Token ?? throw new FileNotFoundException("Token não configurado");
+                    return _AppSettingsDto.ArquivoConfiguracao.Token ?? throw new FileNotFoundException("Token não configurado");
 
                 case DropboxParametro.Configuracao:
-                    return _AppSettingsDto.Configuracao ?? throw new FileNotFoundException("Configuração não configurada");
+                    return _AppSettingsDto.ArquivoConfiguracao.Configurcao ?? throw new FileNotFoundException("Configuração não configurada");
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(parametro), parametro, "Parâmetro inválido");
@@ -109,19 +113,85 @@ namespace Dropbox.Servicos.Servico
         }
 
 
-        private DropboxClient ObterCliente()
+        private async Task<DropboxClient> ObterCliente(DropboxParametro tipo, CancellationToken cancellationToken )
         {
-            var tokenDto = ObterDadosConfiguracao<DropboxTokenDto>(DropboxParametro.OAuth);
+            ////Carregada do arquivo
+            //DropboxTokenDto tokenDto = ObterDadosConfiguracao<DropboxTokenDto>(tipo);
 
-            if (string.IsNullOrWhiteSpace(tokenDto.AccessToken))
-                throw new Exception("AccessToken inválido.");
+            //if (string.IsNullOrWhiteSpace(tokenDto.AccessToken))
+            //    throw new Exception("AccessToken inválido.");
+
+
+            ////Carrega do banco de dados
+            DropboxConfiguracao tokenDto = await _repositorio.ObterConfiguracaoAsync(cancellationToken);
+
+            if (tokenDto == null)
+                throw new Exception("Configuração do Dropbox não encontrada.");
+
+
+            var config = await _repositorio.ObterConfiguracaoAsync(cancellationToken);
+
+            if (config == null)
+                throw new Exception("Configuração não encontrada.");
+
+            // Token válido
+            if (config.ExpiresAt.HasValue && DateTime.UtcNow < config.ExpiresAt.Value.AddMinutes(-2))
+                return new DropboxClient(tokenDto.AccessToken.Trim());
+
+            // Token expirado → renovar
+            Console.WriteLine("Token expirado. Renovando...");
+
+            tokenDto = await RefreshTokenAsync(config, cancellationToken);
+
+
+
+
 
             return new DropboxClient(tokenDto.AccessToken.Trim());
         }
 
+
+
+        private async Task<DropboxConfiguracao> RefreshTokenAsync(DropboxConfiguracao dropboxConfiguracao, CancellationToken cancellationToken)
+        {
+            Dictionary<string, string> request = new Dictionary<string, string>
+            {
+                ["grant_type"] = "refresh_token",
+                ["refresh_token"] = dropboxConfiguracao.RefreshToken,
+                ["client_id"] = dropboxConfiguracao.AppKey,
+                ["client_secret"] = dropboxConfiguracao.AppSecret
+            };
+
+            using var http = new HttpClient();
+
+            //OAuth 2.0 com refresh automático
+            var response = await http.PostAsync("https://api.dropboxapi.com/oauth2/token", new FormUrlEncodedContent(request),  cancellationToken);
+            response.EnsureSuccessStatusCode();
+            string json = await response.Content.ReadAsStringAsync(cancellationToken);
+
+
+            TokenResponse tokenResponse = JsonSerializer.Deserialize<TokenResponse>(json) 
+                ?? throw new Exception("Erro ao renovar token");
+
+
+            //OAuth 2.0 com refresh automático persistido em banco
+            dropboxConfiguracao.AccessToken = tokenResponse.AccessToken;
+            dropboxConfiguracao.ExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
+            await _repositorio.AtualizarAsync(dropboxConfiguracao, cancellationToken);
+
+            Console.WriteLine("Token atualizado no banco");
+
+            return dropboxConfiguracao;
+        }
+
+
+
+
         public async Task<InformacaoContaDto> ObterInformacaoContaAsync(CancellationToken cancellationToken)
         {
-            using var cliente = ObterCliente();
+            using var cliente = await ObterCliente(DropboxParametro.OAuth, cancellationToken);
+
+
 
             var conta = await cliente.Users.GetCurrentAccountAsync();
             cancellationToken.ThrowIfCancellationRequested();
@@ -143,9 +213,9 @@ namespace Dropbox.Servicos.Servico
             if (request == null || request.File.Length == 0)
                 throw new ArgumentException("Arquivo inválido.");
 
-            using var cliente = ObterCliente();
+            using var cliente = await ObterCliente(DropboxParametro.OAuth, cancellationToken);
 
-            string caminho = $"{_AppSettingsDto.PastaBase}/{subFolder}/{request.File.FileName}";
+            string caminho = $"{_AppSettingsDto.ArquivoConfiguracao.PastaBase}/{subFolder}/{request.File.FileName}";
 
             await using var stream = request.File.OpenReadStream();
 
@@ -159,9 +229,9 @@ namespace Dropbox.Servicos.Servico
 
         public async Task<IEnumerable<object>> ObterArquivos(string subFolder, CancellationToken cancellationToken)
         {
-            using var cliente = ObterCliente();
+            using var cliente = await ObterCliente(DropboxParametro.OAuth, cancellationToken);
 
-            string caminho = $"{_AppSettingsDto.PastaBase}/{subFolder}";
+            string caminho = $"{_AppSettingsDto.ArquivoConfiguracao.PastaBase}/{subFolder}";
 
             var resultadoDropbox = await cliente.Files.ListFolderAsync(caminho);
 

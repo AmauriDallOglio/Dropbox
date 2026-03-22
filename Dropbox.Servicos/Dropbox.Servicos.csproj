@@ -7,12 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Dropbox.Aplicacao\Dropbox.Aplicacao.csproj" />
     <ProjectReference Include="..\Dropbox.Dominio\Dropbox.Dominio.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="NovaPasta\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dropbox.Api" Version="7.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.9" />
   </ItemGroup>
 
 </Project>

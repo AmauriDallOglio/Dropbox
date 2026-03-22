@@ -9,18 +9,17 @@ namespace Dropbox.Infraestrutura.Repositorio
     {
         private readonly GenericoContexto _context;
 
-        public DropboxConfiguracaoRepositorio(GenericoContexto dbContext) : base(dbContext)
+        public DropboxConfiguracaoRepositorio(GenericoContexto contexto) : base(contexto)
         {
-            _context = dbContext;
+            _context = contexto;
  
 
         }
 
  
-        public async Task<DropboxConfiguracao?> ObterPorTipoAsync(int tipo, CancellationToken cancellationToken)
+        public async Task<DropboxConfiguracao?> ObterConfiguracaoAsync(CancellationToken cancellationToken)
         {
-            return await _context.Set<DropboxConfiguracao>()
-                .FirstOrDefaultAsync(x => x.Tipo == tipo);
+            return await _context.Set<DropboxConfiguracao>().AsNoTracking().FirstOrDefaultAsync();
         }
 
         public async Task AtualizarAsync(DropboxConfiguracao entity, CancellationToken cancellationToken)

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace Dropbox.Aplicacao.EntidadeDto
+namespace Dropbox.Servicos.Dto
 {
     public class UploadArquivoRequest
     {

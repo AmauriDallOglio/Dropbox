@@ -1,12 +1,10 @@
 ﻿using Dropbox.Api;
 using Dropbox.Api.Files;
 using Dropbox.Api.Users;
-using Dropbox.Aplicacao.Util;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-ArquivoLog _arquivoLog = new ArquivoLog();
 DropboxConfiguracaoDto _dropboxConfiguracaoDto = new DropboxConfiguracaoDto();
 string _appKey = string.Empty;
 string _appSecret = string.Empty;
@@ -14,9 +12,9 @@ string _redirectUri = string.Empty;
 string _pasta = string.Empty;
 string _nomeArquivo = $"{DateTime.Now:ddMMyyyy_HHmmss}";
 
-_arquivoLog.Alerta("============================");
-_arquivoLog.Alerta("CONFIGURAÇÃO");
-_arquivoLog.Alerta("============================");
+Alerta("============================");
+Alerta("CONFIGURAÇÃO");
+Alerta("============================");
 
 try
 {
@@ -27,7 +25,7 @@ try
         _dropboxConfiguracaoDto = JsonSerializer.Deserialize<DropboxConfiguracaoDto>(json);
         if (_dropboxConfiguracaoDto == null)
         {
-            _arquivoLog.Error("Configuração do Dropbox está vazia.");
+            Error("Configuração do Dropbox está vazia.");
             return;
         }
     }
@@ -36,54 +34,54 @@ try
     _redirectUri = _dropboxConfiguracaoDto.RedirectUri;
     _pasta = _dropboxConfiguracaoDto.Pasta;
 
-    _arquivoLog.Padrao($" - AppKey: {_appKey}");
-    _arquivoLog.Padrao($" - AppSecret: {_appSecret}");
-    _arquivoLog.Padrao($" - RedirectUri: {_redirectUri}");
-    _arquivoLog.Padrao($" - Pasta: {_pasta}");
+    Info($" - AppKey: {_appKey}");
+    Info($" - AppSecret: {_appSecret}");
+    Info($" - RedirectUri: {_redirectUri}");
+    Info($" - Pasta: {_pasta}");
 }
 catch (Exception ex)
 {
-    _arquivoLog.Error($" Erro: {ex.Message} / {ex.InnerException?.Message ?? ""}");
+    Error($" Erro: {ex.Message} / {ex.InnerException?.Message ?? ""}");
     return;
 }
 
 
 try
 {
-    _arquivoLog.Info("********************************************************");
-    _arquivoLog.Info("************************* Oath 2.0 *********************");
-    _arquivoLog.Info("********************************************************");
-    _arquivoLog.Info("Iniciando Dropbox...\n");
+    Info("********************************************************");
+    Info("************************* Oath 2.0 *********************");
+    Info("********************************************************");
+    Info("Iniciando Dropbox...\n");
     DropboxClient dropboxCliente = Inicializacao(TipoToken.OAuth).Result;
     await EnviarArquivoAsync(dropboxCliente, _pasta, $"{_nomeArquivo}_Oath.txt", "Arquivo enviado via Program.cs");
 }
 catch (Exception ex)
 {
-    _arquivoLog.Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    _arquivoLog.Error($" Erro: {ex.Message} / {ex.InnerException?.Message ?? ""}");
-    _arquivoLog.Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
+    Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    Error($" Erro: {ex.Message} / {ex.InnerException?.Message ?? ""}");
+    Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
 }
 
 
 try
 {
-    _arquivoLog.Info("\n********************************************************");
-    _arquivoLog.Info("********************* Token ******************************");
-    _arquivoLog.Info("**********************************************************");
-    _arquivoLog.Info("Iniciando Dropbox...\n");
+    Info("\n********************************************************");
+    Info("********************* Token ******************************");
+    Info("**********************************************************");
+    Info("Iniciando Dropbox...\n");
     DropboxClient dropboxCliente = Inicializacao(TipoToken.Token).Result;
     await EnviarArquivoAsync(dropboxCliente, _pasta, $"{_nomeArquivo}_Token.txt", "Arquivo enviado via Program.cs");
 }
 catch (Exception ex)
 {
-    _arquivoLog.Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    _arquivoLog.Error($" Erro: {ex.Message} / {ex.InnerException?.Message ?? ""}");
-    _arquivoLog.Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
+    Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    Error($" Erro: {ex.Message} / {ex.InnerException?.Message ?? ""}");
+    Error($"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! \n");
 }
 
-_arquivoLog.Info("============================");
-_arquivoLog.Info("FIM");
-_arquivoLog.Info("============================");
+Info("============================");
+Info("FIM");
+Info("============================");
 
 // ============================
 // MÉTODOS
@@ -99,13 +97,13 @@ async Task<DropboxClient> Inicializacao(TipoToken tipoToken)
     string tokenArquivo = arquivo.AccessToken;
     DateTime? vencimento = arquivo.ExpiresAt;
 
-    _arquivoLog.Padrao($" Vencimento: {vencimento}");
-    _arquivoLog.Padrao($" Token: {tokenArquivo}");
+    Info($" Vencimento: {vencimento}");
+    Info($" Token: {tokenArquivo}");
     if (string.IsNullOrWhiteSpace(tokenArquivo))
     {
-        _arquivoLog.Error("Token do Dropbox está vazio.");
+        Error("Token do Dropbox está vazio.");
     }
-    _arquivoLog.Padrao("Conectando ao Dropbox...");
+    Info("Conectando ao Dropbox...");
 
 
     DropboxClient dropboxCliente = new DropboxClient(tokenArquivo);
@@ -117,25 +115,25 @@ async Task<DropboxClient> Inicializacao(TipoToken tipoToken)
             throw new Exception("Conta do Dropbox está vazio.");
         }
 
-        _arquivoLog.Alerta("============================");
-        _arquivoLog.Alerta("Informações da conta Dropbox:");
-        _arquivoLog.Alerta("============================");
-        _arquivoLog.Padrao($" - Nome: {conta.Name.DisplayName}");
-        _arquivoLog.Padrao($" - Email: {conta.Email}");
-        _arquivoLog.Padrao($" - AccountId: {conta.AccountId}");
-        _arquivoLog.Padrao($" - País: {conta.Country}");
-        _arquivoLog.Padrao($" - Tipo Basico: {conta.AccountType.IsBasic}");
-        _arquivoLog.Padrao($" - Tipo Comercial: {conta.AccountType.IsBusiness}");
-        _arquivoLog.Padrao($" - Tipo Profissional: {conta.AccountType.IsPro}");
-        _arquivoLog.Padrao("Informações técnicas do cliente:");
-        _arquivoLog.Padrao($" - Classe: {conta.GetType().Name}");
-        _arquivoLog.Padrao($" - Namespace: {conta.GetType().Namespace}");
+        Alerta("============================");
+        Alerta("Informações da conta Dropbox:");
+        Alerta("============================");
+        Info($" - Nome: {conta.Name.DisplayName}");
+        Info($" - Email: {conta.Email}");
+        Info($" - AccountId: {conta.AccountId}");
+        Info($" - País: {conta.Country}");
+        Info($" - Tipo Basico: {conta.AccountType.IsBasic}");
+        Info($" - Tipo Comercial: {conta.AccountType.IsBusiness}");
+        Info($" - Tipo Profissional: {conta.AccountType.IsPro}");
+        Info("Informações técnicas do cliente:");
+        Info($" - Classe: {conta.GetType().Name}");
+        Info($" - Namespace: {conta.GetType().Namespace}");
 
 
     }
     catch (Exception)
     {
-        _arquivoLog.Error("Conta não reconhecida ou sem acesso no Dropbox...");
+        Error("Conta não reconhecida ou sem acesso no Dropbox...");
         throw;
     }
 
@@ -146,9 +144,9 @@ async Task<DropboxClient> Inicializacao(TipoToken tipoToken)
 
 async Task<TokenArquivoDto> CriarOuCarregarArquivoToken(TipoToken tipoToken)
 {
-    _arquivoLog.Alerta("============================");
-    _arquivoLog.Alerta("CriarOuCarregarArquivoToken");
-    _arquivoLog.Alerta("============================");
+    Alerta("============================");
+    Alerta("CriarOuCarregarArquivoToken");
+    Alerta("============================");
 
     string caminhoToken = string.Empty;
     TokenArquivoDto tokenArquivoDto = new TokenArquivoDto();
@@ -175,13 +173,13 @@ async Task<TokenArquivoDto> CriarOuCarregarArquivoToken(TipoToken tipoToken)
                 return tokenArquivoDto;
             else
             {
-                _arquivoLog.Padrao("Renovando Token...");
+                Info("Renovando Token...");
                 return await RefreshTokenOauthAsync(tokenArquivoDto, caminhoToken);
             }
         }
         else
         {
-            _arquivoLog.Padrao("Gerando arquivo...");
+            Info("Gerando arquivo...");
             return await CriarArquivoOauthAsync(caminhoToken);
         }
     }
@@ -207,61 +205,41 @@ async Task<TokenArquivoDto> CriarOuCarregarArquivoToken(TipoToken tipoToken)
     return tokenArquivoDto;
 }
 
-
-
-//async Task<TokenArquivoDto> CriarNovaConfiguracaoRefreshTokenAsync(string tOKEN_PATH_OAUTH)
-//{
-//    _arquivoLog.Alerta("============================");
-//    _arquivoLog.Alerta("CriarNovaConfiguracaoRefreshTokenAsync");
-//    _arquivoLog.Alerta("============================");
-
-//    TokenResponse token = await RefreshAccessToken(tOKEN_PATH_OAUTH);
-
-//    TokenArquivoDto store = new TokenArquivoDto
-//    {
-//        AccessToken = token.AccessToken,
-//        RefreshToken = token.RefreshToken,
-//        ExpiresAt = DateTime.UtcNow.AddSeconds(token.ExpiresIn)
-//    };
-
-//    await File.WriteAllTextAsync(tOKEN_PATH_OAUTH, JsonSerializer.Serialize(store, new JsonSerializerOptions { WriteIndented = true }));
-//    return store;
-//}
-
+ 
 
 
 async Task EnviarArquivoAsync(DropboxClient dropboxCliente, string pasta, string nomeArquivo, string conteudo)
 {
-    _arquivoLog.Alerta("============================");
-    _arquivoLog.Alerta("EnviarArquivoAsync");
-    _arquivoLog.Alerta("============================");
+    Alerta("============================");
+    Alerta("EnviarArquivoAsync");
+    Alerta("============================");
     string caminho = $"{pasta}/{nomeArquivo}";
-    _arquivoLog.Padrao($"Caminho: {caminho}");
+    Info($"Caminho: {caminho}");
     using MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(conteudo));
     try
     {
-        _arquivoLog.Alerta("============================");
-        _arquivoLog.Alerta("ENVIAR ARQUIVO ");
-        _arquivoLog.Alerta("============================");
+        Alerta("============================");
+        Alerta("ENVIAR ARQUIVO ");
+        Alerta("============================");
         await dropboxCliente.Files.UploadAsync(caminho, WriteMode.Overwrite.Instance, body: stream);
-        _arquivoLog.Padrao($"Arquivo enviado: {nomeArquivo}");
+        Info($"Arquivo enviado: {nomeArquivo}");
 
 
-        _arquivoLog.Alerta("============================");
-        _arquivoLog.Alerta("LISTAR ARQUIVOS");
-        _arquivoLog.Alerta("============================");
+        Alerta("============================");
+        Alerta("LISTAR ARQUIVOS");
+        Alerta("============================");
         var arquivos = await dropboxCliente.Files.ListFolderAsync(pasta);
-        _arquivoLog.Padrao($"Total de arquivos: {arquivos.Entries.Count}");
+        Info($"Total de arquivos: {arquivos.Entries.Count}");
         foreach (var item in arquivos.Entries)
         {
-            _arquivoLog.Padrao($"{item.Name} - {item.GetType().Name}");
+            Info($"{item.Name} - {item.GetType().Name}");
         }
     }
     catch (ApiException<UploadError> ex)
     {
-        _arquivoLog.Padrao($"Erro Dropbox: {ex.ErrorResponse}");
+        Info($"Erro Dropbox: {ex.ErrorResponse}");
         if (ex.ErrorResponse.IsPath)
-            _arquivoLog.Padrao($"Path error: {ex.ErrorResponse.AsPath}");
+            Info($"Path error: {ex.ErrorResponse.AsPath}");
 
         throw;
     }
@@ -269,11 +247,11 @@ async Task EnviarArquivoAsync(DropboxClient dropboxCliente, string pasta, string
 
 async Task<TokenArquivoDto> RefreshTokenOauthAsync(TokenArquivoDto tokenArquivoDto, string tOKEN_PATH_OAUTH)
 {
-    _arquivoLog.Alerta("============================");
-    _arquivoLog.Alerta("RefreskTokenOauthAsync");
-    _arquivoLog.Alerta("============================");
+    Alerta("============================");
+    Alerta("RefreskTokenOauthAsync");
+    Alerta("============================");
 
-    _arquivoLog.Error($"Vencimento: {tokenArquivoDto.ExpiresAt}");
+    Error($"Vencimento: {tokenArquivoDto.ExpiresAt}");
 
     var request = new Dictionary<string, string>
     {
@@ -311,11 +289,11 @@ async Task<TokenArquivoDto> RefreshTokenOauthAsync(TokenArquivoDto tokenArquivoD
 
 async Task<TokenArquivoDto> CriarArquivoOauthAsync(string tOKEN_PATH_OAUTH)
 {
-    _arquivoLog.Alerta("============================");
-    _arquivoLog.Alerta("UrlGeradorDeCodigo");
-    _arquivoLog.Alerta("============================");
+    Alerta("============================");
+    Alerta("UrlGeradorDeCodigo");
+    Alerta("============================");
 
-    _arquivoLog.Sucesso("\nAbra a URL abaixo no navegador:");
+    Sucesso("\nAbra a URL abaixo no navegador:");
 
     string site = "https://www.dropbox.com/oauth2/authorize" +
             $"?client_id={_appKey}" +
@@ -323,11 +301,11 @@ async Task<TokenArquivoDto> CriarArquivoOauthAsync(string tOKEN_PATH_OAUTH)
             "&token_access_type=offline" +
             $"&redirect_uri={Uri.EscapeDataString(_redirectUri)}";
 
-    _arquivoLog.Sucesso(site);
+    Sucesso(site);
 
-    _arquivoLog.Sucesso("\nCole o code:");
+    Sucesso("\nCole o code:");
     var code = Console.ReadLine();
-    _arquivoLog.Sucesso($"Cole o code: {code}");
+    Sucesso($"Cole o code: {code}");
 
 
     if (string.IsNullOrWhiteSpace(code))
@@ -364,25 +342,37 @@ async Task<TokenArquivoDto> CriarArquivoOauthAsync(string tOKEN_PATH_OAUTH)
 }
 
 
-//async Task<TokenResponse> RefreshAccessToken(string refreshToken)
-//{
-//    _arquivoLog.Alerta("============================");
-//    _arquivoLog.Alerta("RefreshAccessToken");
-//    _arquivoLog.Alerta("============================");
 
-//    using var client = new HttpClient();
-//    FormUrlEncodedContent content = new FormUrlEncodedContent(new[]
-//    {
-//            new KeyValuePair<string,string>("grant_type", "refresh_token"),
-//            new KeyValuePair<string,string>("refresh_token", refreshToken),
-//            new KeyValuePair<string,string>("client_id", _appKey),
-//            new KeyValuePair<string,string>("client_secret", _appSecret)
-//    });
-//    var response = await client.PostAsync("https://api.dropboxapi.com/oauth2/token", content);
-//    var json = await response.Content.ReadAsStringAsync();
-//    return JsonSerializer.Deserialize<TokenResponse>(json)!;
-//}
 
+void Error(string menssagem)
+{
+    Padrao($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {menssagem}", ConsoleColor.White, ConsoleColor.Red);
+}
+
+
+void Sucesso(string menssagem)
+{
+    Padrao($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {menssagem}", ConsoleColor.Black, ConsoleColor.Green);
+}
+
+
+void Alerta(string menssagem)
+{
+    Padrao($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {menssagem}", ConsoleColor.Black, ConsoleColor.Yellow);
+}
+
+void Info(string menssagem)
+{
+    Padrao($"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {menssagem}", ConsoleColor.Yellow, ConsoleColor.Blue);
+}
+
+void Padrao(string menssagem, ConsoleColor foreground, ConsoleColor background)
+{
+    Console.BackgroundColor = background;
+    Console.ForegroundColor = foreground;
+    Console.WriteLine(menssagem);
+    Console.ResetColor(); // Restaura as cores padrão após a mensagem.
+}
 
 
 // ============================
@@ -433,4 +423,4 @@ public enum TipoToken
     OAuth = 0,
     Token = 1
 }
-
+ 

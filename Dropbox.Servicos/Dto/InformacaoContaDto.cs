@@ -1,4 +1,4 @@
-﻿namespace Dropbox.Aplicacao.EntidadeDto
+﻿namespace Dropbox.Servicos.Dto
 {
     public class InformacaoContaDto
     {

@@ -14,6 +14,6 @@
         public string? Pasta { get; set; }
         public string? NomeArquivo { get; set; }
 
-        public int Tipo { get; set; }
+
     }
 }

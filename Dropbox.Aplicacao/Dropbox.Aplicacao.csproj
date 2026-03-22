@@ -7,8 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dropbox.Api" Version="7.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.9" />
+    <Folder Include="Dto\" />
+    <Folder Include="Rotas\Command\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Dropbox.Servicos\Dropbox.Servicos.csproj" />
   </ItemGroup>
 
 </Project>
