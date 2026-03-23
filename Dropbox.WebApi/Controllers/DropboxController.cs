@@ -1,6 +1,7 @@
 ﻿using Dropbox.Aplicacao.Rotas.Command.CriarConta;
 using Dropbox.Aplicacao.Rotas.Command.InserirCodigoUrl;
 using Dropbox.Aplicacao.Rotas.Query.DadosConta;
+using Dropbox.Aplicacao.Rotas.Query.ObterArquivos;
 using Dropbox.Aplicacao.Util;
 using Dropbox.Servicos.ServicoInterface;
 using Microsoft.AspNetCore.Mvc;
@@ -17,13 +18,15 @@ namespace Dropbox.WebApi.Controllers
         private readonly DadosContaHandler _dadosContaHandler;
         private readonly GerarLinkAutorizacaoHandler _criarContaHandler;
         private readonly GerarTokensHandler _InserirCodigoUrlHandler;
+        private readonly ObterArquivosHandler _obterArquivosHandler;
 
-        public DropboxController(IDropboxServico dropboxServico, DadosContaHandler handler, GerarLinkAutorizacaoHandler criarContaHandler, GerarTokensHandler inserirCodigoUrlHandler  )
+        public DropboxController(IDropboxServico dropboxServico, DadosContaHandler handler, GerarLinkAutorizacaoHandler criarContaHandler, GerarTokensHandler inserirCodigoUrlHandler, ObterArquivosHandler obterArquivosHandler)
         {
             _IDropboxServico = dropboxServico;
             _dadosContaHandler = handler;
             _criarContaHandler = criarContaHandler;
             _InserirCodigoUrlHandler = inserirCodigoUrlHandler;
+            _obterArquivosHandler = obterArquivosHandler;
         }
 
 
@@ -58,13 +61,16 @@ namespace Dropbox.WebApi.Controllers
         }
 
 
- 
+
 
         [HttpGet("ObterArquivos")]
-        public async Task<IActionResult> ObterArquivos(CancellationToken cancellationToken)
+        public async Task<IActionResult> ObterArquivos( [FromQuery] ObterArquivosRequest request, CancellationToken cancellationToken)
         {
-            var arquivos = await _IDropboxServico.ObterArquivos("Arquivos", cancellationToken);
-            return Ok(arquivos);
+            var resultado = await _obterArquivosHandler.Handle(request, cancellationToken);
+
+            int status = resultado.StatusCodigo ?? StatusCodes.Status200OK;
+
+            return StatusCode(status, resultado);
         }
 
 
@@ -74,7 +80,7 @@ namespace Dropbox.WebApi.Controllers
         //{
         //    if (request.File == null)
         //    {
- 
+
         //        var erro = await ResultadoOperacao.GerarErro(null, "Não foi possível enviar o arquivo.", string.Empty, 400);
         //        return BadRequest(erro);
         //    }
