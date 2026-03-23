@@ -17,17 +17,7 @@ namespace Dropbox.Servicos.Dto
                 ExpiresAt = entity.ExpiresAt
             };
         }
-
-        public static DropboxConfiguracao ConverterDtoParaEntidade(DropboxTokenDto dto)
-        {
-            return new DropboxConfiguracao
-            {
-                AccessToken = dto.AccessToken ?? string.Empty,
-                RefreshToken = dto.RefreshToken ?? string.Empty,
-                ExpiresAt = dto.ExpiresAt
-            };
-        }
-
+ 
 
     }
 }

@@ -10,7 +10,7 @@ namespace Dropbox.Servicos.Dto
         public string Pasta { get; set; } = "";
         public string NomeArquivo { get; set; } = "";
 
-        public static DropboxConfiguracaoDto ConverterEntidadeParaDto(DropboxConfiguracao entity)
+        public DropboxConfiguracaoDto ConverterEntidadeParaDto(DropboxConfiguracao entity)
         {
             return new DropboxConfiguracaoDto
             {
@@ -22,17 +22,9 @@ namespace Dropbox.Servicos.Dto
             };
         }
 
-        public static DropboxConfiguracao ConverterDtoParaEntidade(DropboxConfiguracaoDto dto)
-        {
-            return new DropboxConfiguracao
-            {
-                AppKey = dto.AppKey ?? string.Empty,
-                AppSecret = dto.AppSecret ?? string.Empty,
-                RedirectUri = dto.RedirectUri ?? string.Empty,
-                Pasta = dto.Pasta ?? string.Empty,
-                NomeArquivo = dto.NomeArquivo ?? string.Empty
-            };
-        }
+
+
+
 
     }
 }

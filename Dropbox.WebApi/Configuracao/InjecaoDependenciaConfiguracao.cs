@@ -1,4 +1,6 @@
-﻿using Dropbox.Aplicacao.Rotas.Query.DadosConta;
+﻿using Dropbox.Aplicacao.Rotas.Command.CriarConta;
+using Dropbox.Aplicacao.Rotas.Command.InserirCodigoUrl;
+using Dropbox.Aplicacao.Rotas.Query.DadosConta;
 using Dropbox.Dominio.InterfaceRepositorio;
 using Dropbox.Infraestrutura.Repositorio;
 using Dropbox.Servicos.Servico;
@@ -12,6 +14,8 @@ namespace Dropbox.WebApi.Configuracao
         {
             //Aplicação
             services.AddScoped<DadosContaHandler>();
+            services.AddScoped<GerarLinkAutorizacaoHandler>();
+            services.AddScoped<GerarTokensHandler>();
 
             //Dominio/Infraestrutura
             services.AddScoped<IDropboxConfiguracaoRepositorio, DropboxConfiguracaoRepositorio>();

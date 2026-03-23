@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <Folder Include="Dto\" />
-    <Folder Include="Rotas\Command\" />
   </ItemGroup>
 
   <ItemGroup>

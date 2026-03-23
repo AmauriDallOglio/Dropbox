@@ -4,7 +4,6 @@ using Dropbox.Dominio.Entidade;
 using Dropbox.Dominio.InterfaceRepositorio;
 using Dropbox.Servicos.Dto;
 using Dropbox.Servicos.ServicoInterface;
-using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -17,14 +16,14 @@ namespace Dropbox.Servicos.Servico
 
         private readonly IDropboxConfiguracaoRepositorio _repositorio;
 
-        public DropboxServico(IOptions<AppSettingsDto> appSettingsDto, IDropboxConfiguracaoRepositorio repositorio)
+        public DropboxServico(AppSettingsDto appSettingsDto, IDropboxConfiguracaoRepositorio repositorio)
         {
-            _AppSettingsDto = appSettingsDto.Value;
+            _AppSettingsDto = appSettingsDto;
             _repositorio = repositorio;
         }
 
 
-        private T ObterDadosConfiguracao<T>(DropboxParametro parametro)
+        public T ObterDadosConfiguracao<T>(DropboxParametro parametro)
         {
             var caminho = ObterCaminhoParametro(parametro);
 
@@ -121,33 +120,27 @@ namespace Dropbox.Servicos.Servico
             //if (string.IsNullOrWhiteSpace(tokenDto.AccessToken))
             //    throw new Exception("AccessToken inválido.");
 
-
             ////Carrega do banco de dados
-            DropboxConfiguracao tokenDto = await _repositorio.ObterConfiguracaoAsync(cancellationToken);
+            DropboxConfiguracao? dropboxConfiguracao = await _repositorio.ObterConfiguracaoAsync(cancellationToken);
+            if (dropboxConfiguracao is null)
+            {
+                //throw new Exception("Configuração do Dropbox não encontrada.");
+                Console.WriteLine("Configuração não encontrada. Criando automaticamente...");
+                DropboxConfiguracaoDto dto = ObterDadosConfiguracao<DropboxConfiguracaoDto>(DropboxParametro.Configuracao);
+                dropboxConfiguracao.AtualizarConfiguracao(dto.AppKey, dto.AppSecret, dto.RedirectUri, dto.Pasta, dto.NomeArquivo);
+                dropboxConfiguracao = await RefreshTokenAsync(dropboxConfiguracao, cancellationToken);
+            }
+            else
+            {
+                // Token válido
+                if (dropboxConfiguracao.ExpiresAt.HasValue && DateTime.UtcNow < dropboxConfiguracao.ExpiresAt.Value.AddMinutes(-2))
+                    return new DropboxClient(dropboxConfiguracao.AccessToken.Trim());
 
-            if (tokenDto == null)
-                throw new Exception("Configuração do Dropbox não encontrada.");
-
-
-            var config = await _repositorio.ObterConfiguracaoAsync(cancellationToken);
-
-            if (config == null)
-                throw new Exception("Configuração não encontrada.");
-
-            // Token válido
-            if (config.ExpiresAt.HasValue && DateTime.UtcNow < config.ExpiresAt.Value.AddMinutes(-2))
-                return new DropboxClient(tokenDto.AccessToken.Trim());
-
-            // Token expirado → renovar
-            Console.WriteLine("Token expirado. Renovando...");
-
-            tokenDto = await RefreshTokenAsync(config, cancellationToken);
-
-
-
-
-
-            return new DropboxClient(tokenDto.AccessToken.Trim());
+                // Token expirado → renovar
+                Console.WriteLine("Token expirado. Renovando...");
+                dropboxConfiguracao = await RefreshTokenAsync(dropboxConfiguracao, cancellationToken);
+            }
+            return new DropboxClient(dropboxConfiguracao.AccessToken.Trim());
         }
 
 
@@ -175,9 +168,9 @@ namespace Dropbox.Servicos.Servico
 
 
             //OAuth 2.0 com refresh automático persistido em banco
-            dropboxConfiguracao.AccessToken = tokenResponse.AccessToken;
-            dropboxConfiguracao.ExpiresAt = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
-            await _repositorio.AtualizarAsync(dropboxConfiguracao, cancellationToken);
+            dropboxConfiguracao.AtualizarRefreshAutomatico(tokenResponse.AccessToken, DateTime.Now.AddSeconds(tokenResponse.ExpiresIn));
+ 
+            await _repositorio.EditarAsync(dropboxConfiguracao, cancellationToken);
 
             Console.WriteLine("Token atualizado no banco");
 

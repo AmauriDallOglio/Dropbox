@@ -22,10 +22,10 @@ namespace Dropbox.Infraestrutura.Repositorio
             return await _context.Set<DropboxConfiguracao>().AsNoTracking().FirstOrDefaultAsync();
         }
 
-        public async Task AtualizarAsync(DropboxConfiguracao entity, CancellationToken cancellationToken)
-        {
-            _context.Update(entity);
-            await _context.SaveChangesAsync();
-        }
+        //public async Task AtualizarAsync(DropboxConfiguracao entity, CancellationToken cancellationToken)
+        //{
+        //    _context.Update(entity);
+        //    await _context.SaveChangesAsync();
+        //}
     }
 }

@@ -17,22 +17,16 @@ namespace Dropbox.Aplicacao.Rotas.Query.DadosConta
             try
             {
                 var info = await _dropboxServico.ObterInformacaoContaAsync(cancellationToken);
+                DadosContaResponse response = new DadosContaResponse
+                {
+                    Conta = info
+                };
 
-                return ResultadoOperacao.GerarSucesso(
-                    new DadosContaResponse
-                    {
-                        Conta = info
-                    },
-                    "Informações da conta obtidas com sucesso"
-                );
+                return ResultadoOperacao.GerarSucesso( response, "Informações da conta obtidas com sucesso" );
             }
             catch (Exception ex)
             {
-                return ResultadoOperacao.GerarErro(
-                    "Erro ao obter dados da conta",
-                    500,
-                    ex.Message
-                );
+                return ResultadoOperacao.GerarErro("Erro ao obter dados da conta", 500, ex.Message);
             }
         }
     }

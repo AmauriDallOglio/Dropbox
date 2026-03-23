@@ -1,5 +1,6 @@
 ﻿using Dropbox.Api.Files;
 using Dropbox.Servicos.Dto;
+using static Dropbox.Servicos.Servico.DropboxServico;
 
 namespace Dropbox.Servicos.ServicoInterface
 {
@@ -8,5 +9,7 @@ namespace Dropbox.Servicos.ServicoInterface
         Task<FileMetadata> EnviarArquivoAsync(UploadArquivoRequest request, string subFolder, CancellationToken cancellationToken);
         Task<IEnumerable<object>> ObterArquivos(string subFolder, CancellationToken cancellationToken);
         Task<InformacaoContaDto> ObterInformacaoContaAsync(CancellationToken cancellationToken);
+
+        T ObterDadosConfiguracao<T>(DropboxParametro parametro);
     }
 }
