@@ -2,9 +2,6 @@
 
 namespace Dropbox.Servicos.Dto
 {
-
-
-
     public class TokenResponse
     {
         [JsonPropertyName("access_token")]

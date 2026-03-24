@@ -21,19 +21,10 @@ namespace Dropbox.WebApi.Middleware
             catch (Exception ex)
             {
                 context.Response.ContentType = "application/json";
-
-                var resultado = ResultadoOperacao.GerarErro(
-                    "Erro interno do sistema",
-                    StatusCodes.Status500InternalServerError,
-                    ex.Message
-                );
-
+                var resultado = ResultadoOperacao.GerarErro("Erro interno do sistema", StatusCodes.Status500InternalServerError,  ex.Message );
                 context.Response.StatusCode = resultado.StatusCodigo ?? 500;
-
                 var json = JsonSerializer.Serialize(resultado);
-
                 await context.Response.WriteAsync(json);
-
                 ArquivoLog.Error($"Erro: {ex.Message}");
             }
         }

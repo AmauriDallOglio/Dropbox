@@ -11,12 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="NovaPasta\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Dropbox.Api" Version="7.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.9" />
+    <PackageReference Include="Polly" Version="8.6.6" />
   </ItemGroup>
 
 </Project>

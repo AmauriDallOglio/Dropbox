@@ -1,4 +1,5 @@
 ﻿using Dropbox.Aplicacao.Rotas.Command.CriarConta;
+using Dropbox.Aplicacao.Rotas.Command.EnviarArquivo;
 using Dropbox.Aplicacao.Rotas.Command.InserirCodigoUrl;
 using Dropbox.Aplicacao.Rotas.Query.DadosConta;
 using Dropbox.Aplicacao.Rotas.Query.ObterArquivos;
@@ -18,6 +19,7 @@ namespace Dropbox.WebApi.Configuracao
             services.AddScoped<GerarLinkAutorizacaoHandler>();
             services.AddScoped<GerarTokensHandler>();
             services.AddScoped<ObterArquivosHandler>();
+            services.AddScoped<EnviarArquivoHandler>();
 
             //Dominio/Infraestrutura
             services.AddScoped<IDropboxConfiguracaoRepositorio, DropboxConfiguracaoRepositorio>();

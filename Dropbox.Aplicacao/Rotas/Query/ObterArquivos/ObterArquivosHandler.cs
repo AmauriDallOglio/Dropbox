@@ -16,15 +16,13 @@ namespace Dropbox.Aplicacao.Rotas.Query.ObterArquivos
         {
             try
             {
-                var arquivos = await _dropboxServico.ObterArquivos(  request.Pasta,  cancellationToken);
-
-                return ResultadoOperacao.GerarSucesso(
-                    new ObterArquivosResponse
-                    {
-                        Arquivos = arquivos
-                    },
-                    "Arquivos obtidos com sucesso"
-                );
+                string pasta = "Arquivos";
+                var arquivos = await _dropboxServico.ObterArquivos(pasta,  cancellationToken);
+                ObterArquivosResponse response = new ObterArquivosResponse
+                {
+                    Arquivos = arquivos
+                };
+                return ResultadoOperacao.GerarSucesso(response, "Arquivos obtidos com sucesso" );
             }
             catch (Exception ex)
             {

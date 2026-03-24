@@ -17,7 +17,5 @@ namespace Dropbox.Servicos.Dto
                 ExpiresAt = entity.ExpiresAt
             };
         }
- 
-
     }
 }

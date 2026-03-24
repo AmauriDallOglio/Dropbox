@@ -2,6 +2,6 @@
 {
     public class ObterArquivosRequest
     {
-        public string Pasta { get; set; } = "Arquivos";
+
     }
 }

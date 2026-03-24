@@ -1,9 +1,14 @@
 ﻿using Dropbox.Api;
 using Dropbox.Api.Files;
+using Dropbox.Api.Sharing;
+using Dropbox.Api.Users;
 using Dropbox.Dominio.Entidade;
 using Dropbox.Dominio.InterfaceRepositorio;
 using Dropbox.Servicos.Dto;
 using Dropbox.Servicos.ServicoInterface;
+using Microsoft.AspNetCore.Http;
+using Polly;
+using Polly.Retry;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -25,7 +30,7 @@ namespace Dropbox.Servicos.Servico
 
         public T ObterDadosConfiguracao<T>(DropboxParametro parametro)
         {
-            var caminho = ObterCaminhoParametro(parametro);
+            string caminho = ObterCaminhoParametro(parametro);
 
             if (!File.Exists(caminho))
                 throw new FileNotFoundException($"Arquivo não encontrado: {caminho}");
@@ -158,7 +163,7 @@ namespace Dropbox.Servicos.Servico
             using var http = new HttpClient();
 
             //OAuth 2.0 com refresh automático
-            var response = await http.PostAsync("https://api.dropboxapi.com/oauth2/token", new FormUrlEncodedContent(request),  cancellationToken);
+            HttpResponseMessage response = await http.PostAsync("https://api.dropboxapi.com/oauth2/token", new FormUrlEncodedContent(request),  cancellationToken);
             response.EnsureSuccessStatusCode();
             string json = await response.Content.ReadAsStringAsync(cancellationToken);
 
@@ -184,9 +189,7 @@ namespace Dropbox.Servicos.Servico
         {
             using var cliente = await ObterCliente(DropboxParametro.OAuth, cancellationToken);
 
-
-
-            var conta = await cliente.Users.GetCurrentAccountAsync();
+            FullAccount conta = await cliente.Users.GetCurrentAccountAsync();
             cancellationToken.ThrowIfCancellationRequested();
             return new InformacaoContaDto
             {
@@ -201,40 +204,48 @@ namespace Dropbox.Servicos.Servico
         }
 
 
-        public async Task<FileMetadata> EnviarArquivoAsync(UploadArquivoRequest request, string subFolder, CancellationToken cancellationToken)
+        public async Task<FileMetadata> EnviarArquivoAsync(IFormFile? file, string subFolder, CancellationToken cancellationToken)
         {
-            if (request == null || request.File.Length == 0)
-                throw new ArgumentException("Arquivo inválido.");
+            if (file == null || file.Length == 0)
+                throw new ArgumentException("Arquivo ");
 
             using var cliente = await ObterCliente(DropboxParametro.OAuth, cancellationToken);
+            string caminho = $"{_AppSettingsDto.ArquivoConfiguracao.PastaBase}/{subFolder}/{file.FileName}";
 
-            string caminho = $"{_AppSettingsDto.ArquivoConfiguracao.PastaBase}/{subFolder}/{request.File.FileName}";
-
-            await using var stream = request.File.OpenReadStream();
-
-            return await cliente.Files.UploadAsync(
-                caminho,
-                WriteMode.Overwrite.Instance,
-                body: stream);
+            await using var stream = file.OpenReadStream();
+            AsyncRetryPolicy policy = Polly();
+            return await policy.ExecuteAsync(async () =>
+            {
+                return await cliente.Files.UploadAsync(caminho, WriteMode.Overwrite.Instance, body: stream);
+            });
         }
 
-
+        private AsyncRetryPolicy Polly()
+        {
+            AsyncRetryPolicy policy = Policy
+                .Handle<ApiException<UploadError>>() // erro Dropbox
+                .Or<HttpRequestException>()          // erro rede
+                .Or<TaskCanceledException>()         // timeout
+                .WaitAndRetryAsync(
+                    3,
+                    tentativa => TimeSpan.FromSeconds(Math.Pow(2, tentativa)),
+                    (ex, tempo, tentativa, context) =>
+                    {
+                        Console.WriteLine($"[Dropbox Retry] Tentativa {tentativa} - {ex.Message}");
+                    });
+            return policy;
+        }
 
         public async Task<IEnumerable<object>> ObterArquivos(string subFolder, CancellationToken cancellationToken)
         {
             using var cliente = await ObterCliente(DropboxParametro.OAuth, cancellationToken);
-
             string caminho = $"{_AppSettingsDto.ArquivoConfiguracao.PastaBase}/{subFolder}";
-
-            var resultadoDropbox = await cliente.Files.ListFolderAsync(caminho);
-
+            ListFolderResult resultadoDropbox = await cliente.Files.ListFolderAsync(caminho);
             var resultado = new List<object>();
-
             foreach (var e in resultadoDropbox.Entries)
             {
                 string preview = string.Empty;
                 string download = string.Empty;
-
                 if (e.IsFile)
                 {
                     string? url = await ObterOuCriarLinkCompartilhadoAsync(cliente, e.PathDisplay);
@@ -246,8 +257,7 @@ namespace Dropbox.Servicos.Servico
                     }
                 }
 
-                var file = e as FileMetadata;
-
+                FileMetadata file = e as FileMetadata;
                 resultado.Add(new
                 {
                     e.Name,
@@ -269,13 +279,13 @@ namespace Dropbox.Servicos.Servico
 
         private async Task<string?> ObterOuCriarLinkCompartilhadoAsync(DropboxClient cliente, string path)
         {
-            var links = await cliente.Sharing.ListSharedLinksAsync( path,  directOnly: true);
+            ListSharedLinksResult links = await cliente.Sharing.ListSharedLinksAsync( path,  directOnly: true);
 
-            var linkExistente = links.Links.FirstOrDefault();
+            SharedLinkMetadata linkExistente = links.Links.FirstOrDefault();
             if (linkExistente != null)
                 return linkExistente.Url;
 
-            var novoLink = await cliente.Sharing.CreateSharedLinkWithSettingsAsync(path);
+            SharedLinkMetadata novoLink = await cliente.Sharing.CreateSharedLinkWithSettingsAsync(path);
             return novoLink.Url;
         }
 
@@ -307,7 +317,6 @@ namespace Dropbox.Servicos.Servico
                 default:
                     break;
             }
-
 
             // Se for automático, retorna o link limpo
             if (parametro == null)

@@ -1,4 +1,5 @@
 ﻿using Dropbox.Aplicacao.Rotas.Command.CriarConta;
+using Dropbox.Aplicacao.Rotas.Command.EnviarArquivo;
 using Dropbox.Aplicacao.Rotas.Command.InserirCodigoUrl;
 using Dropbox.Aplicacao.Rotas.Query.DadosConta;
 using Dropbox.Aplicacao.Rotas.Query.ObterArquivos;
@@ -19,14 +20,16 @@ namespace Dropbox.WebApi.Controllers
         private readonly GerarLinkAutorizacaoHandler _criarContaHandler;
         private readonly GerarTokensHandler _InserirCodigoUrlHandler;
         private readonly ObterArquivosHandler _obterArquivosHandler;
+        private readonly EnviarArquivoHandler _enviarArquivoHandler;
 
-        public DropboxController(IDropboxServico dropboxServico, DadosContaHandler handler, GerarLinkAutorizacaoHandler criarContaHandler, GerarTokensHandler inserirCodigoUrlHandler, ObterArquivosHandler obterArquivosHandler)
+        public DropboxController(IDropboxServico dropboxServico, DadosContaHandler handler, GerarLinkAutorizacaoHandler criarContaHandler, GerarTokensHandler inserirCodigoUrlHandler, ObterArquivosHandler obterArquivosHandler, EnviarArquivoHandler enviarArquivoHandler)
         {
             _IDropboxServico = dropboxServico;
             _dadosContaHandler = handler;
             _criarContaHandler = criarContaHandler;
             _InserirCodigoUrlHandler = inserirCodigoUrlHandler;
             _obterArquivosHandler = obterArquivosHandler;
+            _enviarArquivoHandler = enviarArquivoHandler;
         }
 
 
@@ -67,6 +70,18 @@ namespace Dropbox.WebApi.Controllers
         public async Task<IActionResult> ObterArquivos( [FromQuery] ObterArquivosRequest request, CancellationToken cancellationToken)
         {
             var resultado = await _obterArquivosHandler.Handle(request, cancellationToken);
+
+            int status = resultado.StatusCodigo ?? StatusCodes.Status200OK;
+
+            return StatusCode(status, resultado);
+        }
+
+
+        [HttpPost("EnviarArquivo")]
+        //[Consumes("multipart/form-data")]
+        public async Task<IActionResult> EnviarArquivo( [FromForm] EnviarArquivoRequest request,  CancellationToken cancellationToken)
+        {
+            var resultado = await _enviarArquivoHandler.Handle(request, cancellationToken);
 
             int status = resultado.StatusCodigo ?? StatusCodes.Status200OK;
 

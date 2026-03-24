@@ -1,4 +1,5 @@
 ﻿using Dropbox.Aplicacao.Util;
+using Dropbox.Servicos.Dto;
 using Dropbox.Servicos.ServicoInterface;
 
 namespace Dropbox.Aplicacao.Rotas.Query.DadosConta
@@ -16,7 +17,7 @@ namespace Dropbox.Aplicacao.Rotas.Query.DadosConta
         {
             try
             {
-                var info = await _dropboxServico.ObterInformacaoContaAsync(cancellationToken);
+                InformacaoContaDto info = await _dropboxServico.ObterInformacaoContaAsync(cancellationToken);
                 DadosContaResponse response = new DadosContaResponse
                 {
                     Conta = info
