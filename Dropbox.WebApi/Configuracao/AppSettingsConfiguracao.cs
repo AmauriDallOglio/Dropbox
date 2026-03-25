@@ -41,7 +41,7 @@ namespace Dropbox.WebApi.Configuracao
         private static void ImprimeAppSettingsDto(AppSettingsDto appSettings)
         {
             string json = JsonSerializer.Serialize(appSettings, new JsonSerializerOptions { WriteIndented = true });
-            ArquivoLog.Alerta($"AppSettingsDto carregado: {json}");
+            PrintaConsole.Alerta($"AppSettingsDto carregado: {json}");
         }
 
 

@@ -117,7 +117,7 @@ namespace Dropbox.Servicos.Servico
         }
 
 
-        private async Task<DropboxClient> ObterCliente(DropboxParametro tipo, CancellationToken cancellationToken )
+        private async Task<DropboxClient> ObterCliente(DropboxParametro tipo, CancellationToken cancellationToken)
         {
             ////Carregada do arquivo
             //DropboxTokenDto tokenDto = ObterDadosConfiguracao<DropboxTokenDto>(tipo);
@@ -163,18 +163,18 @@ namespace Dropbox.Servicos.Servico
             using var http = new HttpClient();
 
             //OAuth 2.0 com refresh automático
-            HttpResponseMessage response = await http.PostAsync("https://api.dropboxapi.com/oauth2/token", new FormUrlEncodedContent(request),  cancellationToken);
+            HttpResponseMessage response = await http.PostAsync("https://api.dropboxapi.com/oauth2/token", new FormUrlEncodedContent(request), cancellationToken);
             response.EnsureSuccessStatusCode();
             string json = await response.Content.ReadAsStringAsync(cancellationToken);
 
 
-            TokenResponse tokenResponse = JsonSerializer.Deserialize<TokenResponse>(json) 
+            TokenResponse tokenResponse = JsonSerializer.Deserialize<TokenResponse>(json)
                 ?? throw new Exception("Erro ao renovar token");
 
 
             //OAuth 2.0 com refresh automático persistido em banco
             dropboxConfiguracao.AtualizarRefreshAutomatico(tokenResponse.AccessToken, DateTime.Now.AddSeconds(tokenResponse.ExpiresIn));
- 
+
             await _repositorio.EditarAsync(dropboxConfiguracao, cancellationToken);
 
             Console.WriteLine("Token atualizado no banco");
@@ -185,22 +185,33 @@ namespace Dropbox.Servicos.Servico
 
 
 
-        public async Task<InformacaoContaDto> ObterInformacaoContaAsync(CancellationToken cancellationToken)
+        public async Task<ContaDropboxDto> ObterInformacaoContaAsync(CancellationToken cancellationToken)
         {
             using var cliente = await ObterCliente(DropboxParametro.OAuth, cancellationToken);
+            if (cliente == null)
+            {
+                throw new Exception("Conta não localizada");
+            }
 
             FullAccount conta = await cliente.Users.GetCurrentAccountAsync();
-            cancellationToken.ThrowIfCancellationRequested();
-            return new InformacaoContaDto
+            if (conta == null)
             {
-                Nome = conta.Name.DisplayName,
-                Email = conta.Email,
-                Pais = conta.Country,
-                AccountId = conta.AccountId,
-                TipoBasico = conta.AccountType.IsBasic,
-                TipoBusiness = conta.AccountType.IsBusiness,
-                TipoPro = conta.AccountType.IsPro
-            };
+                throw new Exception("Dados da conta não localizados");
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+            return new ContaDropboxDto(conta.Name.DisplayName, conta.Email, conta.Country, conta.AccountId, conta.AccountType.IsBasic, conta.AccountType.IsBusiness, conta.AccountType.IsPro);
+
+            //return new InformacaoContaDto
+            //{
+            //    Nome = conta.Name.DisplayName,
+            //    Email = conta.Email,
+            //    Pais = conta.Country,
+            //    AccountId = conta.AccountId,
+            //    TipoBasico = conta.AccountType.IsBasic,
+            //    TipoBusiness = conta.AccountType.IsBusiness,
+            //    TipoPro = conta.AccountType.IsPro
+            //};
         }
 
 
@@ -236,50 +247,92 @@ namespace Dropbox.Servicos.Servico
             return policy;
         }
 
-        public async Task<IEnumerable<object>> ObterArquivos(string subFolder, CancellationToken cancellationToken)
+        //public async Task<IEnumerable<object>> ObterArquivos(string subFolder, CancellationToken cancellationToken)
+        //{
+        //    using var cliente = await ObterCliente(DropboxParametro.OAuth, cancellationToken);
+        //    string caminho = $"{_AppSettingsDto.ArquivoConfiguracao.PastaBase}/{subFolder}";
+        //    ListFolderResult resultadoDropbox = await cliente.Files.ListFolderAsync(caminho);
+        //    var resultado = new List<object>();
+        //    foreach (var e in resultadoDropbox.Entries)
+        //    {
+        //        string preview = string.Empty;
+        //        string download = string.Empty;
+        //        if (e.IsFile)
+        //        {
+        //            string? url = await ObterOuCriarLinkCompartilhadoAsync(cliente, e.PathDisplay);
+
+        //            if (!string.IsNullOrEmpty(url))
+        //            {
+        //                preview = AjustarLinkDownload(url, DropboxLinkModo.Preview);
+        //                download = AjustarLinkDownload(url, DropboxLinkModo.Download);
+        //            }
+        //        }
+
+        //        FileMetadata file = e as FileMetadata;
+        //        resultado.Add(new
+        //        {
+        //            e.Name,
+        //            e.PathDisplay,
+        //            e.PathLower,
+        //            Tipo = e.GetType().Name,
+        //            Tamanho = file?.Size,
+        //            DataModificacao = file?.ClientModified,
+        //            Rev = file?.Rev,
+        //            LinkCompartilhadoPreview = preview,
+        //            LinkCompartilhadoDownload = download
+        //        });
+        //    }
+
+        //    return resultado;
+        //}
+
+
+        public async Task<IEnumerable<ArquivoDropboxDto>> ObterArquivosAsync(string subFolder, CancellationToken cancellationToken)
         {
             using var cliente = await ObterCliente(DropboxParametro.OAuth, cancellationToken);
             string caminho = $"{_AppSettingsDto.ArquivoConfiguracao.PastaBase}/{subFolder}";
-            ListFolderResult resultadoDropbox = await cliente.Files.ListFolderAsync(caminho);
-            var resultado = new List<object>();
+            var resultadoDropbox = await cliente.Files.ListFolderAsync(caminho);
+            var lista = new List<ArquivoDropboxDto>();
             foreach (var e in resultadoDropbox.Entries)
             {
+                if (!e.IsFile)
+                    continue;
+
+                var file = e as FileMetadata;
+
+                string? url = await ObterOuCriarLinkCompartilhadoAsync(cliente, e.PathDisplay);
+
                 string preview = string.Empty;
                 string download = string.Empty;
-                if (e.IsFile)
-                {
-                    string? url = await ObterOuCriarLinkCompartilhadoAsync(cliente, e.PathDisplay);
 
-                    if (!string.IsNullOrEmpty(url))
-                    {
-                        preview = AjustarLinkDownload(url, DropboxLinkModo.Preview);
-                        download = AjustarLinkDownload(url, DropboxLinkModo.Download);
-                    }
+                if (!string.IsNullOrEmpty(url))
+                {
+                    preview = AjustarLinkDownload(url, DropboxLinkModo.Preview);
+                    download = AjustarLinkDownload(url, DropboxLinkModo.Download);
                 }
 
-                FileMetadata file = e as FileMetadata;
-                resultado.Add(new
-                {
-                    e.Name,
-                    e.PathDisplay,
-                    e.PathLower,
-                    Tipo = e.GetType().Name,
-                    Tamanho = file?.Size,
-                    DataModificacao = file?.ClientModified,
-                    Rev = file?.Rev,
-                    LinkCompartilhadoPreview = preview,
-                    LinkCompartilhadoDownload = download
-                });
+                //lista.Add(new ArquivoDropboxDto
+                //{
+                //    Nome = e.Name,
+                //    Caminho = e.PathDisplay,
+                //    Tamanho = file?.Size,
+                //    DataModificacao = file?.ClientModified,
+                //    LinkPreview = preview,
+                //    LinkDownload = download
+                //});
+                var entidade = new ArquivoDropboxDto(e.Name, e.PathDisplay, file?.Size, file?.ClientModified, url);
+                lista.Add(entidade);
             }
-
-            return resultado;
+            return lista;
         }
+
+
 
 
 
         private async Task<string?> ObterOuCriarLinkCompartilhadoAsync(DropboxClient cliente, string path)
         {
-            ListSharedLinksResult links = await cliente.Sharing.ListSharedLinksAsync( path,  directOnly: true);
+            ListSharedLinksResult links = await cliente.Sharing.ListSharedLinksAsync(path, directOnly: true);
 
             SharedLinkMetadata linkExistente = links.Links.FirstOrDefault();
             if (linkExistente != null)

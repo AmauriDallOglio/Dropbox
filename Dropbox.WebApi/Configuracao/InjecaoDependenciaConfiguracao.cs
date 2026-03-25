@@ -1,8 +1,10 @@
-﻿using Dropbox.Aplicacao.Rotas.Command.CriarConta;
+﻿using Dropbox.Aplicacao.Dto;
+using Dropbox.Aplicacao.Rotas.Command.CriarConta;
 using Dropbox.Aplicacao.Rotas.Command.EnviarArquivo;
 using Dropbox.Aplicacao.Rotas.Command.InserirCodigoUrl;
 using Dropbox.Aplicacao.Rotas.Query.DadosConta;
 using Dropbox.Aplicacao.Rotas.Query.ObterArquivos;
+using Dropbox.Aplicacao.Util;
 using Dropbox.Dominio.InterfaceRepositorio;
 using Dropbox.Infraestrutura.Repositorio;
 using Dropbox.Servicos.Servico;
@@ -21,6 +23,12 @@ namespace Dropbox.WebApi.Configuracao
             services.AddScoped<ObterArquivosHandler>();
             services.AddScoped<EnviarArquivoHandler>();
 
+            services.AddSingleton<CacheSistemaDto>();
+ 
+ 
+            services.AddSingleton<ICacheSistemaServico, CacheSistemaServico>();
+
+
             //Dominio/Infraestrutura
             services.AddScoped<IDropboxConfiguracaoRepositorio, DropboxConfiguracaoRepositorio>();
             services.AddScoped(typeof(IGenericoRepositorio<>), typeof(GenericoRepositorio<>));
@@ -28,6 +36,7 @@ namespace Dropbox.WebApi.Configuracao
 
             //Servicos
             services.AddScoped<IDropboxServico, DropboxServico>();
+
 
         }
     }

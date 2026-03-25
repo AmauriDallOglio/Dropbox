@@ -12,21 +12,18 @@ namespace Dropbox.Aplicacao.Rotas.Query.ObterArquivos
             _dropboxServico = dropboxServico;
         }
 
-        public async Task<ResultadoOperacao> Handle( ObterArquivosRequest request,  CancellationToken cancellationToken)
+        public async Task<ResultadoOperacao> Handle(ObterArquivosRequest request, CancellationToken cancellationToken)
         {
             try
             {
                 string pasta = "Arquivos";
-                var arquivos = await _dropboxServico.ObterArquivos(pasta,  cancellationToken);
-                ObterArquivosResponse response = new ObterArquivosResponse
-                {
-                    Arquivos = arquivos
-                };
-                return ResultadoOperacao.GerarSucesso(response, "Arquivos obtidos com sucesso" );
+                var arquivos = await _dropboxServico.ObterArquivosAsync(pasta, cancellationToken);
+                return ResultadoOperacao.GerarSucesso(new ObterArquivosResponse { Arquivos = arquivos }, "Arquivos obtidos com sucesso");
             }
             catch (Exception ex)
             {
-                return ResultadoOperacao.GerarErro(  "Erro ao obter arquivos", 500, ex.Message);
+                Console.WriteLine($"Erro ao obter arquivos: {ex.Message}");
+                return ResultadoOperacao.GerarErro("Erro ao obter arquivos", 500, ex.Message);
             }
         }
     }

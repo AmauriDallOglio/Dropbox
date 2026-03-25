@@ -15,20 +15,15 @@ namespace Dropbox.Aplicacao.Rotas.Query.DadosConta
 
         public async Task<ResultadoOperacao> Handle(DadosContaRequest request, CancellationToken cancellationToken)
         {
-            try
-            {
-                InformacaoContaDto info = await _dropboxServico.ObterInformacaoContaAsync(cancellationToken);
-                DadosContaResponse response = new DadosContaResponse
-                {
-                    Conta = info
-                };
 
-                return ResultadoOperacao.GerarSucesso( response, "Informações da conta obtidas com sucesso" );
-            }
-            catch (Exception ex)
+            ContaDropboxDto info = await _dropboxServico.ObterInformacaoContaAsync(cancellationToken);
+            DadosContaResponse response = new DadosContaResponse
             {
-                return ResultadoOperacao.GerarErro("Erro ao obter dados da conta", 500, ex.Message);
-            }
+                Conta = info
+            };
+
+            return ResultadoOperacao.GerarSucesso(response, "Informações da conta obtidas com sucesso");
+
         }
     }
 }

@@ -1,7 +1,9 @@
-﻿namespace Dropbox.Aplicacao.Rotas.Query.ObterArquivos
+﻿using Dropbox.Servicos.Dto;
+
+namespace Dropbox.Aplicacao.Rotas.Query.ObterArquivos
 {
     public class ObterArquivosResponse
     {
-        public IEnumerable<object> Arquivos { get; set; } = new List<object>();
+        public IEnumerable<ArquivoDropboxDto> Arquivos { get; set; } = new List<ArquivoDropboxDto>();
     }
 }

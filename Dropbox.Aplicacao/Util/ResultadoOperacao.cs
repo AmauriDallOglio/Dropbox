@@ -17,13 +17,16 @@
             };
         }
 
-        public static ResultadoOperacao GerarErro(string mensagem, int? codigo = null, object? dados = null)
+
+
+        public static ResultadoOperacao GerarErro(string mensagem, int? codigo = null, object? dados = null, Exception? ex = null, string? path = null)
         {
+
             return new ResultadoOperacao
             {
                 Sucesso = false,
                 Mensagem = mensagem,
-                StatusCodigo = codigo,
+                StatusCodigo = codigo ?? 500,
                 Resultado = dados
             };
         }
