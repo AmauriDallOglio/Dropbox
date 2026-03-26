@@ -4,7 +4,7 @@ namespace Dropbox.Aplicacao.Rotas.Command.EnviarArquivo
 {
     public class EnviarArquivoRequest
     {
- 
-        public IFormFile File { get; set; } = default!;
+
+        public IFormFile? Arquivo { get; set; } = default!;
     }
 }

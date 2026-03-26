@@ -17,11 +17,7 @@ namespace Dropbox.Aplicacao.Rotas.Query.DadosConta
         {
 
             ContaDropboxDto info = await _dropboxServico.ObterInformacaoContaAsync(cancellationToken);
-            DadosContaResponse response = new DadosContaResponse
-            {
-                Conta = info
-            };
-
+            DadosContaResponse response = DadosContaResponse.ConverterContaDropboxDto(info);
             return ResultadoOperacao.GerarSucesso(response, "Informações da conta obtidas com sucesso");
 
         }

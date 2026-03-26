@@ -1,6 +1,7 @@
 ﻿using Dropbox.Aplicacao.Dto;
 using Dropbox.Aplicacao.Rotas.Command.CriarConta;
 using Dropbox.Aplicacao.Rotas.Command.EnviarArquivo;
+using Dropbox.Aplicacao.Rotas.Command.ExcluirArquivo;
 using Dropbox.Aplicacao.Rotas.Command.InserirCodigoUrl;
 using Dropbox.Aplicacao.Rotas.Query.DadosConta;
 using Dropbox.Aplicacao.Rotas.Query.ObterArquivos;
@@ -22,10 +23,11 @@ namespace Dropbox.WebApi.Configuracao
             services.AddScoped<GerarTokensHandler>();
             services.AddScoped<ObterArquivosHandler>();
             services.AddScoped<EnviarArquivoHandler>();
+            services.AddScoped<ExcluirArquivoHandler>();
 
             services.AddSingleton<CacheSistemaDto>();
- 
- 
+
+
             services.AddSingleton<ICacheSistemaServico, CacheSistemaServico>();
 
 

@@ -1,4 +1,5 @@
 ﻿using Dropbox.Aplicacao.Util;
+using Dropbox.Servicos.Dto;
 using Dropbox.Servicos.ServicoInterface;
 
 namespace Dropbox.Aplicacao.Rotas.Query.ObterArquivos
@@ -14,17 +15,9 @@ namespace Dropbox.Aplicacao.Rotas.Query.ObterArquivos
 
         public async Task<ResultadoOperacao> Handle(ObterArquivosRequest request, CancellationToken cancellationToken)
         {
-            try
-            {
-                string pasta = "Arquivos";
-                var arquivos = await _dropboxServico.ObterArquivosAsync(pasta, cancellationToken);
-                return ResultadoOperacao.GerarSucesso(new ObterArquivosResponse { Arquivos = arquivos }, "Arquivos obtidos com sucesso");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Erro ao obter arquivos: {ex.Message}");
-                return ResultadoOperacao.GerarErro("Erro ao obter arquivos", 500, ex.Message);
-            }
+            IEnumerable<ArquivoDropboxDto> arquivos = await _dropboxServico.ObterArquivosAsync(cancellationToken);
+            List<ObterArquivosItemResponse> response = arquivos.Select(ObterArquivosItemResponse.ConverterArquivoDropboxDto).ToList();
+            return ResultadoOperacao.GerarSucesso(new ObterArquivosResponse { Arquivos = response }, "Arquivos obtidos com sucesso");
         }
     }
 }

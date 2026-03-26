@@ -1,5 +1,6 @@
 ﻿using Dropbox.Aplicacao.Rotas.Command.CriarConta;
 using Dropbox.Aplicacao.Rotas.Command.EnviarArquivo;
+using Dropbox.Aplicacao.Rotas.Command.ExcluirArquivo;
 using Dropbox.Aplicacao.Rotas.Command.InserirCodigoUrl;
 using Dropbox.Aplicacao.Rotas.Query.DadosConta;
 using Dropbox.Aplicacao.Rotas.Query.ObterArquivos;
@@ -21,8 +22,9 @@ namespace Dropbox.WebApi.Controllers
         private readonly GerarTokensHandler _InserirCodigoUrlHandler;
         private readonly ObterArquivosHandler _obterArquivosHandler;
         private readonly EnviarArquivoHandler _enviarArquivoHandler;
+        private readonly ExcluirArquivoHandler _excluirArquivoHandler;
 
-        public DropboxController(IDropboxServico dropboxServico, DadosContaHandler handler, GerarLinkAutorizacaoHandler criarContaHandler, GerarTokensHandler inserirCodigoUrlHandler, ObterArquivosHandler obterArquivosHandler, EnviarArquivoHandler enviarArquivoHandler)
+        public DropboxController(IDropboxServico dropboxServico, DadosContaHandler handler, GerarLinkAutorizacaoHandler criarContaHandler, GerarTokensHandler inserirCodigoUrlHandler, ObterArquivosHandler obterArquivosHandler, EnviarArquivoHandler enviarArquivoHandler, ExcluirArquivoHandler excluirArquivoHandler)
         {
             _IDropboxServico = dropboxServico;
             _dadosContaHandler = handler;
@@ -30,16 +32,15 @@ namespace Dropbox.WebApi.Controllers
             _InserirCodigoUrlHandler = inserirCodigoUrlHandler;
             _obterArquivosHandler = obterArquivosHandler;
             _enviarArquivoHandler = enviarArquivoHandler;
+            _excluirArquivoHandler = excluirArquivoHandler;
         }
 
-
-        [HttpPost("GerarLinkAutorizacao")]
+        [HttpGet("GerarLinkAutorizacao")]
         public async Task<IActionResult> GerarLinkAutorizacao([FromForm] GerarLinkAutorizacaoRequest request, CancellationToken cancellationToken)
         {
             ResultadoOperacao resultado = await _criarContaHandler.Handle(request, cancellationToken);
             return Ok(resultado);
         }
-
 
         [HttpPost("GerarTokens")]
         public async Task<IActionResult> GerarTokens([FromForm] GerarTokensRequest request, CancellationToken cancellationToken)
@@ -48,9 +49,6 @@ namespace Dropbox.WebApi.Controllers
             return Ok(resultado);
         }
 
-
-
-
         [HttpGet("DadosConta")]
         public async Task<IActionResult> DadosConta(CancellationToken cancellationToken)
         {
@@ -58,61 +56,30 @@ namespace Dropbox.WebApi.Controllers
 
             ResultadoOperacao resultado = await _dadosContaHandler.Handle(request, cancellationToken);
 
-            int status = resultado.StatusCodigo ?? StatusCodes.Status200OK;
-
-            return StatusCode(status, resultado);
+            return Ok(resultado);
         }
 
-
-
-
         [HttpGet("ObterArquivos")]
-        public async Task<IActionResult> ObterArquivos( [FromQuery] ObterArquivosRequest request, CancellationToken cancellationToken)
+        public async Task<IActionResult> ObterArquivos([FromQuery] ObterArquivosRequest request, CancellationToken cancellationToken)
         {
             var resultado = await _obterArquivosHandler.Handle(request, cancellationToken);
-
-            int status = resultado.StatusCodigo ?? StatusCodes.Status200OK;
-
-            return StatusCode(status, resultado);
+            return Ok(resultado);
         }
 
 
         [HttpPost("EnviarArquivo")]
-        //[Consumes("multipart/form-data")]
-        public async Task<IActionResult> EnviarArquivo( [FromForm] EnviarArquivoRequest request,  CancellationToken cancellationToken)
+        public async Task<IActionResult> EnviarArquivo([FromForm] EnviarArquivoRequest request, CancellationToken cancellationToken)
         {
             var resultado = await _enviarArquivoHandler.Handle(request, cancellationToken);
-
-            int status = resultado.StatusCodigo ?? StatusCodes.Status200OK;
-
-            return StatusCode(status, resultado);
+            return Ok(resultado);
         }
 
-
-        //[HttpPost("enviar-arquivo")]
-        //[Consumes("multipart/form-data")]
-        //public async Task<IActionResult> EnviarArquivo([FromForm] UploadArquivoRequest request, CancellationToken cancellationToken)
-        //{
-        //    if (request.File == null)
-        //    {
-
-        //        var erro = await ResultadoOperacao.GerarErro(null, "Não foi possível enviar o arquivo.", string.Empty, 400);
-        //        return BadRequest(erro);
-        //    }
-
-        //    var resultado = await _dropboxServico.EnviarArquivoAsync(request, "Arquivos", cancellationToken);
-        //    var sucesso = await ResultadoOperacao.GerarSucesso(resultado.PathDisplay, "Arquivo enviado com sucesso.", string.Empty, 200);
-
-        //    return Ok(sucesso);
-        //}
-
-        //[HttpGet("obter-arquivos")]
-        //public async Task<IActionResult> ObterArquivos(CancellationToken cancellationToken)
-        //{
-        //    var arquivos = await _dropboxServico.ObterArquivos("Arquivos", cancellationToken);
-        //    return Ok(arquivos);
-        //}
-
+        [HttpPost("ExcluirArquivo")]
+        public async Task<IActionResult> ExcluirArquivo([FromForm] ExcluirArquivoRequest request, CancellationToken cancellationToken)
+        {
+            ResultadoOperacao resultado = await _excluirArquivoHandler.Handle(request, cancellationToken);
+            return Ok(resultado);
+        }
 
     }
 }

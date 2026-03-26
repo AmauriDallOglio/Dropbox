@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Dropbox.Api.Files;
 
 namespace Dropbox.Servicos.Dto
 {
@@ -32,6 +28,20 @@ namespace Dropbox.Servicos.Dto
             Validar();
         }
 
+
+        public static ArquivoDropboxDto Criar(FileMetadata fileMetadata, string preview, string download)
+        {
+            return new ArquivoDropboxDto
+            {
+                Nome = fileMetadata.Name,
+                Caminho = fileMetadata.PathDisplay,
+                Tamanho = fileMetadata.Size,
+                DataModificacao = fileMetadata.ClientModified,
+                LinkPreview = preview,
+                LinkDownload = download
+            };
+        }
+
         private void Validar()
         {
             if (string.IsNullOrWhiteSpace(Nome))
@@ -42,29 +52,7 @@ namespace Dropbox.Servicos.Dto
         }
 
 
-        public string ObterLinkPreview()
-        {
-            return AjustarLink(UrlCompartilhada, "dl=0");
-        }
 
-        public string ObterLinkDownload()
-        {
-            return AjustarLink(UrlCompartilhada, "dl=1");
-        }
 
-        public bool EhArquivoGrande()
-        {
-            return Tamanho.HasValue && Tamanho.Value > 10_000_000; // 10MB
-        }
-
-        private string AjustarLink(string url, string parametro)
-        {
-            if (string.IsNullOrWhiteSpace(url))
-                return string.Empty;
-
-            url = System.Text.RegularExpressions.Regex.Replace(url, @"([&?])(dl|raw)=\d", string.Empty);
-
-            return url.Contains("?") ? $"{url}&{parametro}" : $"{url}?{parametro}";
-        }
     }
 }
