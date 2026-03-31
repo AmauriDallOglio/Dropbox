@@ -46,12 +46,21 @@ namespace Dropbox.WebApi
 
             var app = builder.Build();
 
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            // redireciona "/" para o Swagger
+            app.Use(async (context, next) =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Dropbox Upload API v1");
+                if (context.Request.Path == "/")
+                {
+                    context.Response.Redirect("/swagger/index.html");
+                    return;
+                }
+                await next();
             });
 
+            app.UseSwagger();
+            app.UseSwaggerUI();
+
+            app.UseCors("AllowAll");
             app.UseHttpsRedirection();
             app.MapControllers();
 

@@ -4,10 +4,21 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+
+	  <!-- IIS -->
+	  <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+	  <SelfContained>false</SelfContained>
+	  <!-- não empacota o runtime -->
+	  <UseAppHost>true</UseAppHost>
+	  <!-- gera o .exe -->
+	  
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+	<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+	<!-- IIS -->
+	<PackageReference Include="Microsoft.IdentityModel.Protocols" Version="8.3.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.3.0" />
   </ItemGroup>
 
   <ItemGroup>
