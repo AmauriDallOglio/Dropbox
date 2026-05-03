@@ -1,6 +1,4 @@
-﻿using Dropbox.Api;
-using Dropbox.Aplicacao.Util;
-using System.Text.Json;
+﻿using Dropbox.Aplicacao.Util;
 
 namespace Dropbox.WebApi.Middleware
 {
@@ -11,99 +9,64 @@ namespace Dropbox.WebApi.Middleware
         private readonly ILogger<ProcessaRequisicaoMiddleware> _logger;
         private readonly ICacheSistemaServico _cache;
 
-        public ProcessaRequisicaoMiddleware(
-            RequestDelegate next,
-            ILogger<ProcessaRequisicaoMiddleware> logger,
-            ICacheSistemaServico cache)
+        public ProcessaRequisicaoMiddleware( RequestDelegate next,  ILogger<ProcessaRequisicaoMiddleware> logger,  ICacheSistemaServico cache)
         {
             _next = next;
             _logger = logger;
             _cache = cache;
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task InvokeAsync(HttpContext context)
         {
+            //Prometheus
+            if (context.Request.Path.StartsWithSegments("/metrics") || context.Request.Path.StartsWithSegments("/swagger"))
+            {
+                await _next(context);
+                return;
+            }
+
+
             try
             {
                 await _next(context);
             }
             catch (Exception ex)
             {
-                await Handle(context, ex);
+                await TratarErroAsync(context, ex);
             }
         }
 
-        private async Task Handle(HttpContext context, Exception ex)
+        private async Task TratarErroAsync(HttpContext context, Exception exception)
         {
-            var statusCode = ex switch
+            var httpDicionarioCodigoErros = new Dictionary<Type, int>
             {
-                UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
-                ArgumentException => StatusCodes.Status400BadRequest,
-                KeyNotFoundException => StatusCodes.Status404NotFound,
-                InvalidOperationException => StatusCodes.Status409Conflict,
-                FormatException => StatusCodes.Status422UnprocessableEntity,
-
-                // SEU DOMÍNIO (melhor prática)
-                //   AppException appEx => appEx.StatusCode,
-
-                _ => StatusCodes.Status500InternalServerError
+                { typeof(ArgumentException), StatusCodes.Status400BadRequest },
+                { typeof(KeyNotFoundException), StatusCodes.Status404NotFound },
+                { typeof(InvalidOperationException), StatusCodes.Status409Conflict },
+                { typeof(UnauthorizedAccessException), StatusCodes.Status401Unauthorized },
+                { typeof(FormatException), StatusCodes.Status422UnprocessableEntity },
+                { typeof(NullReferenceException), StatusCodes.Status500InternalServerError }
             };
 
-            _logger.LogError(ex, "Erro na aplicação");
+            var statusCode = httpDicionarioCodigoErros.TryGetValue(exception.GetType(), out var code)
+                ? code
+                : StatusCodes.Status500InternalServerError;
 
-            _cache.RegistrarErro(ex, context.Request.Path, ex.Message);
+            _logger.LogError(exception, "Erro na aplicação");
+            _cache.RegistrarErro(exception, context.Request.Path, exception.Message);
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
 
             var response = ResultadoOperacao.GerarErro(
-                mensagem: ex.Message,
+                mensagem: exception.Message,
                 codigo: statusCode,
-                ex: ex,
+                ex: exception,
                 path: context.Request.Path
             );
 
             await context.Response.WriteAsJsonAsync(response);
         }
-
-
-        //private readonly RequestDelegate _next;
-
-        //public ProcessaRequisicaoMiddleware(RequestDelegate next)
-        //{
-        //    _next = next;
-        //}
-
-        //public async Task Invoke(HttpContext context)
-        //{
-        //    ICacheSistemaServico logService = context.RequestServices.GetRequiredService<ICacheSistemaServico>();
-        //    try
-        //    {
-
-        //        logService.RegistrarAcesso(context.Request.Path, context.Request.Method, context.Response.StatusCode);
-
-        //        await _next(context);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // logService.RegistrarErro(ex,  context.Request.Path, "Erro não tratado");
-
-        //        context.Response.ContentType = "application/json";
-
-        //        logService.RegistrarErro(ex, context.Request.Path, ex.Message);
-
-        //        var resultado = ResultadoOperacao.GerarErro("Erro interno do sistema", StatusCodes.Status500InternalServerError, ex.Message, ex, context.Request.Path);
-        //        context.Response.StatusCode = resultado.StatusCodigo ?? 500;
-
-        //        var json = JsonSerializer.Serialize(resultado);
-        //        await context.Response.WriteAsync(json);
-
-
-
-        //        //  await context.Response.WriteAsync(JsonSerializer.Serialize(resultado));
-
-        //    }
-        //}
     }
 }
 

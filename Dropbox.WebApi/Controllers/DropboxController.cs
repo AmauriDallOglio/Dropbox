@@ -7,6 +7,7 @@ using Dropbox.Aplicacao.Rotas.Query.ObterArquivos;
 using Dropbox.Aplicacao.Util;
 using Dropbox.Servicos.ServicoInterface;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Dropbox.WebApi.Controllers
 {
@@ -35,6 +36,8 @@ namespace Dropbox.WebApi.Controllers
             _excluirArquivoHandler = excluirArquivoHandler;
         }
 
+
+        [EnableRateLimiting("consulta")]
         [HttpGet("GerarLinkAutorizacao")]
         public async Task<IActionResult> GerarLinkAutorizacao([FromForm] GerarLinkAutorizacaoRequest request, CancellationToken cancellationToken)
         {
@@ -42,6 +45,7 @@ namespace Dropbox.WebApi.Controllers
             return Ok(resultado);
         }
 
+        [EnableRateLimiting("consulta")]
         [HttpPost("GerarTokens")]
         public async Task<IActionResult> GerarTokens([FromForm] GerarTokensRequest request, CancellationToken cancellationToken)
         {
@@ -49,31 +53,32 @@ namespace Dropbox.WebApi.Controllers
             return Ok(resultado);
         }
 
+        [EnableRateLimiting("consulta")]
         [HttpGet("DadosConta")]
         public async Task<IActionResult> DadosConta(CancellationToken cancellationToken)
         {
             DadosContaRequest request = new DadosContaRequest();
-
             ResultadoOperacao resultado = await _dadosContaHandler.Handle(request, cancellationToken);
-
             return Ok(resultado);
         }
 
+        [EnableRateLimiting("consulta")]
         [HttpGet("ObterArquivos")]
         public async Task<IActionResult> ObterArquivos([FromQuery] ObterArquivosRequest request, CancellationToken cancellationToken)
         {
-            var resultado = await _obterArquivosHandler.Handle(request, cancellationToken);
+            ResultadoOperacao resultado = await _obterArquivosHandler.Handle(request, cancellationToken);
             return Ok(resultado);
         }
 
-
+        [EnableRateLimiting("consulta")]
         [HttpPost("EnviarArquivo")]
         public async Task<IActionResult> EnviarArquivo([FromForm] EnviarArquivoRequest request, CancellationToken cancellationToken)
         {
-            var resultado = await _enviarArquivoHandler.Handle(request, cancellationToken);
+            ResultadoOperacao resultado = await _enviarArquivoHandler.Handle(request, cancellationToken);
             return Ok(resultado);
         }
 
+        [EnableRateLimiting("consulta")]
         [HttpPost("ExcluirArquivo")]
         public async Task<IActionResult> ExcluirArquivo([FromForm] ExcluirArquivoRequest request, CancellationToken cancellationToken)
         {
