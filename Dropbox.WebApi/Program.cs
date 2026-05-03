@@ -57,8 +57,10 @@ namespace Dropbox.WebApi
             app.UseSwaggerUI();
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();
-            app.MapControllers();
             app.UseMiddleware<ProcessaRequisicaoMiddleware>();
+            app.UseRateLimiter();
+            app.MapControllers();
+            app.MapPrometheusScrapingEndpoint().AllowAnonymous();
             app.Run();
         }
     }
