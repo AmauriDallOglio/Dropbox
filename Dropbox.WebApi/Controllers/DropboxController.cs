@@ -6,6 +6,7 @@ using Dropbox.Aplicacao.Rotas.Query.DadosConta;
 using Dropbox.Aplicacao.Rotas.Query.ObterArquivos;
 using Dropbox.Aplicacao.Util;
 using Dropbox.Servicos.ServicoInterface;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -54,6 +55,7 @@ namespace Dropbox.WebApi.Controllers
         }
 
         [EnableRateLimiting("consulta")]
+        //[Authorize(Policy = "dropbox.read")]
         [HttpGet("DadosConta")]
         public async Task<IActionResult> DadosConta(CancellationToken cancellationToken)
         {
@@ -63,6 +65,7 @@ namespace Dropbox.WebApi.Controllers
         }
 
         [EnableRateLimiting("consulta")]
+        //[Authorize(Policy = "dropbox.read")]
         [HttpGet("ObterArquivos")]
         public async Task<IActionResult> ObterArquivos([FromQuery] ObterArquivosRequest request, CancellationToken cancellationToken)
         {
@@ -71,6 +74,7 @@ namespace Dropbox.WebApi.Controllers
         }
 
         [EnableRateLimiting("consulta")]
+        //[Authorize(Policy = "dropbox.write")]
         [HttpPost("EnviarArquivo")]
         public async Task<IActionResult> EnviarArquivo([FromForm] EnviarArquivoRequest request, CancellationToken cancellationToken)
         {
@@ -79,6 +83,7 @@ namespace Dropbox.WebApi.Controllers
         }
 
         [EnableRateLimiting("consulta")]
+        //[Authorize(Policy = "dropbox.write")]
         [HttpPost("ExcluirArquivo")]
         public async Task<IActionResult> ExcluirArquivo([FromForm] ExcluirArquivoRequest request, CancellationToken cancellationToken)
         {
@@ -88,3 +93,4 @@ namespace Dropbox.WebApi.Controllers
 
     }
 }
+

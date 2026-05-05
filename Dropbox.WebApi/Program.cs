@@ -1,4 +1,4 @@
-using Dropbox.Aplicacao.Util;
+ï»¿using Dropbox.Aplicacao.Util;
 using Dropbox.WebApi.Configuracao;
 using Dropbox.WebApi.Middleware;
 using Serilog;
@@ -12,7 +12,7 @@ namespace Dropbox.WebApi
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
             string ambiente = builder.Environment.IsDevelopment() ? "appsettings.Development.json" : "appsettings.json";
-            //PrintaConsole.Alerta($"Configuração: {ambiente}");
+            //PrintaConsole.Alerta($"ConfiguraÃ§Ã£o: {ambiente}");
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(builder.Environment.ContentRootPath)
                 .AddJsonFile(ambiente, optional: false, reloadOnChange: true)
@@ -20,7 +20,7 @@ namespace Dropbox.WebApi
 
 
 
-            // CONFIGURAÇÃO DO SERILOG
+            // CONFIGURAÃ‡ÃƒO DO SERILOG
             Log.Logger = new LoggerConfiguration()
                 .Enrich.FromLogContext()
                 .Enrich.WithMachineName()
@@ -36,10 +36,10 @@ namespace Dropbox.WebApi
             PrintaConsole.Info("Carregando appsettings");
             AppSettingsConfiguracao.Carregar(builder.Services, configuration);
 
-            PrintaConsole.Info("Carregando injeção de dependência");
+            PrintaConsole.Info("Carregando injeÃ§Ã£o de dependÃªncia");
             InjecaoDependenciaConfiguracao.Carregar(builder.Services);
 
-            PrintaConsole.Info("Carregando configuração da API");
+            PrintaConsole.Info("Carregando configuraÃ§Ã£o da API");
             ConfiguracaoApi.Carregar(builder.Services);
 
 
@@ -59,9 +59,13 @@ namespace Dropbox.WebApi
             app.UseHttpsRedirection();
             app.UseMiddleware<ProcessaRequisicaoMiddleware>();
             app.UseRateLimiter();
+            app.UseAuthentication();
+            app.UseAuthorization();
             app.MapControllers();
             app.MapPrometheusScrapingEndpoint().AllowAnonymous();
             app.Run();
         }
     }
 }
+
+

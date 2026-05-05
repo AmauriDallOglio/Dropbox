@@ -1,4 +1,5 @@
 ﻿using Dropbox.Aplicacao.Util;
+using Dropbox.Servicos.Dto;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
@@ -12,6 +13,10 @@ namespace Dropbox.WebApi.Configuracao
     {
         public static void Carregar(this IServiceCollection services)
         {
+            // resolve AppSettingsDto já registrado
+            var provider = services.BuildServiceProvider();
+            var appSettings = provider.GetRequiredService<AppSettingsDto>();
+
             services.Configure<FormOptions>(options =>
             {
                 options.MultipartBodyLengthLimit = 100_000_000;
@@ -29,7 +34,7 @@ namespace Dropbox.WebApi.Configuracao
             PrintaConsole.Info("Carregando controllers");
             Controllers(services);
             PrintaConsole.Info("Carregando autorização");
-            Autorizacao(services);
+            Autorizacao(services, appSettings);
             PrintaConsole.Info("Carregando CORS");
             Cors(services);
             PrintaConsole.Info("Carregando Prometheus");
@@ -221,13 +226,85 @@ namespace Dropbox.WebApi.Configuracao
             });
         }
 
-        private static void Autorizacao(this IServiceCollection services)
+        private static void Autorizacao(this IServiceCollection services, AppSettingsDto appSettings)
         {
-            services.AddAuthorization();
-          //  AutenticacaoJwt(services);
-
+            services.AddAuthorization(options =>
+            {
+                options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+                options.AddPolicy("dropbox.read", p => p.RequireClaim("scope", "dropbox.read"));
+                options.AddPolicy("dropbox.write", p => p.RequireClaim("scope", "dropbox.write"));
+            });
+            AutenticacaoJwt(services, appSettings);
         }
 
+
+        private static void AutenticacaoJwt(this IServiceCollection services, AppSettingsDto appSettings)
+        {
+
+            var provider = services.BuildServiceProvider();
+            var configuration = provider.GetRequiredService<IConfiguration>();
+            var tokenSecret = configuration["Token:Secret"];
+            var publicKeyBase64 = appSettings.Token.Secret;
+            var issuer = configuration["Token:Issuer"];
+            var audience = configuration["Token:Audience"];
+            Microsoft.IdentityModel.Tokens.SecurityKey securityKey;
+            if (!string.IsNullOrWhiteSpace(tokenSecret))
+            {
+                securityKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(tokenSecret));
+            }
+            else
+            {
+                using var rsa = CarregarRsaPublica(publicKeyBase64);
+                securityKey = new Microsoft.IdentityModel.Tokens.RsaSecurityKey(rsa);
+            }
+
+            services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.SaveToken = true;
+                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = securityKey,
+                        ValidateIssuer = true,
+                        ValidIssuer = issuer,
+                        ValidateAudience = true,
+                        ValidAudience = audience,
+                        ValidateLifetime = true,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+        }
+
+        private static System.Security.Cryptography.RSA CarregarRsaPublica(string publicKey)
+        {
+            if (string.IsNullOrWhiteSpace(publicKey))
+                throw new InvalidOperationException("Token:PublicKey não configurado.");
+
+            var rsa = System.Security.Cryptography.RSA.Create();
+            var key = publicKey.Trim();
+
+            if (key.Contains("BEGIN PUBLIC KEY") || key.Contains("BEGIN RSA PUBLIC KEY"))
+            {
+                rsa.ImportFromPem(key);
+                return rsa;
+            }
+
+            var keyBytes = Convert.FromBase64String(key);
+            try
+            {
+                rsa.ImportRSAPublicKey(keyBytes, out _);
+                return rsa;
+            }
+            catch
+            {
+                rsa.ImportSubjectPublicKeyInfo(keyBytes, out _);
+                return rsa;
+            }
+        }
 
         //private static void AutenticacaoJwt(this IServiceCollection services)
         //{
@@ -240,7 +317,7 @@ namespace Dropbox.WebApi.Configuracao
         //    try
         //    {
         //        using RSA rsa = RSA.Create();
-        //        rsa.ImportRSAPublicKey(Convert.FromBase64String(publicKeyBase64), out _);
+        //        rsa = CarregarRsaPublica(publicKeyBase64);
         //        RsaSecurityKey? securityKey = new RsaSecurityKey(rsa);
         //        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme) //Microsoft.AspNetCore.Authentication.JwtBearer
         //        .AddJwtBearer(options =>
@@ -286,5 +363,10 @@ namespace Dropbox.WebApi.Configuracao
         //        throw;
         //    }
         //}
+
+
     }
 }
+
+
+
