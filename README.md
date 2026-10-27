@@ -137,6 +137,21 @@ Atenção: o access token gerado concede acesso direto à conta do Dropbox assoc
 <img width="1513" height="888" alt="image" src="https://github.com/user-attachments/assets/64a48dfa-c2c0-4294-ae03-f66e7845001e" />
 
 
+    AccessToken,                 --sl.u.AG3HCWvtP1HxiQ7kONv1y6PyzXRU50boj0WsTkhO8I1rF6n8ai93
+    RefreshToken,                --0Rbp1UGHUNwAAAAAAAAAAbd4
+    ExpiresAt,                   --2026-10-27T04:24:13
+    AppKey,                      --mcsyt4                    --Chave do aplicativo
+    AppSecret,                   --9aivxz                    --Segredo de aplicativo
+    RedirectUri,                 --http://localhost:500
+    Pasta,                       --/AMAURI_NET/Arquivos
+    NomeArquivo,                 --NULL
+    UltimaAtualizacaoToken,      --2026-10-26T21:37:45
+    UltimaAtualizacaoCodigo,     --NULL
+    UltimaAtualizacaoRefresh     --NULL
+
+<img width="1425" height="854" alt="image" src="https://github.com/user-attachments/assets/775348b0-8190-4402-b7c7-4ae2dd04522f" />
+
+
 <img width="1817" height="599" alt="image" src="https://github.com/user-attachments/assets/749fd1e3-9fb4-4b8d-8258-89f9ce457611" />
 
 
