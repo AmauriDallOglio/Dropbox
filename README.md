@@ -141,3 +141,5 @@ Atenção: o access token gerado concede acesso direto à conta do Dropbox assoc
 
 
 
+<img width="1514" height="846" alt="image" src="https://github.com/user-attachments/assets/f659fa2f-92d9-4bd1-91ac-a7f0934c44f0" />
+
